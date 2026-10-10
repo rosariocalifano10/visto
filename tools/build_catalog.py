@@ -73,15 +73,31 @@ def wiki_title(t):
     return WIKI_SUFFIX.sub("", t).strip() if t else None
 
 
-def run_query(sparql, timeout=600):
+def run_query(sparql, timeout=120):
+    """POST the query and stream the answer, printing progress so a stall shows up in the log."""
     data = urllib.parse.urlencode({"query": sparql}).encode()
     req = urllib.request.Request(ENDPOINT, data=data, method="POST", headers={
         "User-Agent": UA,
         "Accept": "application/sparql-results+json",
         "Content-Type": "application/x-www-form-urlencoded",
+        "Accept-Encoding": "identity",
     })
+    t0 = time.time()
+    print(f"POST {ENDPOINT} ({len(data)} bytes of query)", flush=True)
     with urllib.request.urlopen(req, timeout=timeout) as r:
-        return json.loads(r.read().decode("utf-8"))["results"]["bindings"]
+        print(f"  HTTP {r.status} after {time.time() - t0:.1f}s, content-type {r.headers.get('Content-Type')}", flush=True)
+        chunks, total, last = [], 0, 0
+        while True:
+            b = r.read(1 << 20)
+            if not b:
+                break
+            chunks.append(b)
+            total += len(b)
+            if total - last >= 10 << 20:
+                print(f"  {total >> 20} MB after {time.time() - t0:.0f}s", flush=True)
+                last = total
+    print(f"  done: {total / 1e6:.1f} MB in {time.time() - t0:.1f}s", flush=True)
+    return json.loads(b"".join(chunks).decode("utf-8"))["results"]["bindings"]
 
 
 def main(out_path, report_path):
@@ -89,13 +105,15 @@ def main(out_path, report_path):
     last_year = dt.date.today().year + 2
     log = []
     rows = None
-    for attempt in range(5):
+    for attempt in range(4):
         try:
             rows = run_query(QUERY)
             break
         except Exception as e:  # timeouts, 5xx, connection resets
-            wait = 30 * (attempt + 1)
-            log.append(f"attempt {attempt + 1}: {type(e).__name__}: {e}; retrying in {wait}s")
+            wait = 20 * (attempt + 1)
+            msg = f"attempt {attempt + 1}: {type(e).__name__}: {e}; retrying in {wait}s"
+            print(msg, flush=True)
+            log.append(msg)
             time.sleep(wait)
     if rows is None:
         raise SystemExit("QLever did not answer; keeping the previous catalog")
