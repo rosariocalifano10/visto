@@ -467,6 +467,8 @@ textarea {
 .pick .box-check { width: 24px; height: 24px; border-radius: 50%; box-shadow: inset 0 0 0 2px var(--line); display: grid; place-items: center; color: transparent; transition: background-color .15s ease; }
 .pick .box-check svg { width: 14px; height: 14px; }
 .pick .t { font-weight: 600; overflow-wrap: anywhere; }
+.pick .alt, .suggest .alt { display: block; font-weight: 400; font-size: 13px; color: var(--muted); margin-top: 2px; }
+#pkBrowse .pk-sec { content-visibility: auto; contain-intrinsic-size: auto 2000px; }
 .pick .y { font: 400 13px var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
 .pick[aria-pressed="true"] .box-check { background: var(--ink); color: var(--bg); box-shadow: none; }
 .pick.have { opacity: .55; }
@@ -684,7 +686,7 @@ label.item { cursor: pointer; }
     </label>
     <p class="hint" id="pkHint"></p>
   </div>
-  <div class="sheet-body" id="pkList"></div>
+  <div class="sheet-body" id="pkList"><div id="pkBrowse"></div><div id="pkSearch" hidden></div><p class="hint pk-status" id="pkStatus" hidden></p><div id="pkOnline"></div></div>
   <div class="pick-foot"><button class="btn" id="pkAdd" type="button" disabled>Tick the films you've seen</button></div>
 </section>
 
@@ -699,7 +701,7 @@ label.item { cursor: pointer; }
   </div>
   <div class="sheet-body">
     <div class="list-card">
-      <button class="item" id="sPick" type="button"><svg><use href="#i-list"/></svg><span><span class="t">Tick off films you've seen</span><span class="s" id="sPickSub">A list of well-known films, by decade</span></span></button>
+      <button class="item" id="sPick" type="button"><svg><use href="#i-list"/></svg><span><span class="t">Tick off films you've seen</span><span class="s" id="sPickSub">Well-known films by decade, or search any title</span></span></button>
       <button class="item" id="sWatchPick" type="button"><svg><use href="#i-bookmark"/></svg><span><span class="t">Pick films you want to see</span><span class="s">Same list, straight into your watchlist</span></span></button>
     </div>
     <div class="label"><span>Appearance</span></div>
@@ -726,7 +728,7 @@ label.item { cursor: pointer; }
     <div class="list-card">
       <button class="item danger" id="sErase" type="button"><svg><use href="#i-trash"/></svg><span><span class="t" id="sEraseT">Erase everything</span><span class="s" id="sEraseS">Deletes every entry on this device</span></span></button>
     </div>
-    <p class="colophon">Visto v1.4 · no account, no tracking. Your diary never leaves this device unless you export it. Film data from Wikidata (CC0).</p>
+    <p class="colophon">Visto v1.5 · no account, no tracking. Your diary never leaves this device unless you export it. Film data from Wikidata (CC0).</p>
   </div>
 </section>
 
@@ -2037,6 +2039,17 @@ Metropolis|1927
     }
   }
 
+  // Same rule as the film list builder: Italian title for films in Italian (not English), or in both
+  // languages but made in Italy without the US or UK. The Godfather lists Italy and Italian too, but is American.
+  function isItalianFilm(langs, countries) {
+    const has = (s, q) => new RegExp('entity/' + q + '(\\s|$)').test(s);
+    const it = has(langs, 'Q652');
+    const en = has(langs, 'Q1860');
+    if (it && !en) return true;
+    if (has(countries, 'Q38') && !has(countries, 'Q30') && !has(countries, 'Q145')) return it || !langs;
+    return false;
+  }
+
   const WD = {
     cache: new Map(),
     async search(q, signal) {
@@ -2054,11 +2067,11 @@ Metropolis|1927
       if (cands.length) {
         try {
           const values = cands.map(x => 'wd:' + x.id).join(' ');
-          const sparql = 'SELECT ?i ?it ?en (GROUP_CONCAT(DISTINCT STR(?l)) AS ?ls) (MIN(?yy) AS ?y) WHERE { ' +
+          const sparql = 'SELECT ?i ?it ?en (GROUP_CONCAT(DISTINCT STR(?l)) AS ?ls) (GROUP_CONCAT(DISTINCT STR(?c)) AS ?cs) (MIN(?yy) AS ?y) WHERE { ' +
             `VALUES ?i { ${values} } FILTER EXISTS { ?i wdt:P31/wdt:P279* wd:Q11424 } ` +
             'OPTIONAL { ?i rdfs:label ?it FILTER(LANG(?it) = "it") } ' +
             'OPTIONAL { ?i rdfs:label ?en FILTER(LANG(?en) = "en") } ' +
-            'OPTIONAL { ?i wdt:P364 ?l } ' +
+            'OPTIONAL { ?i wdt:P364 ?l } OPTIONAL { ?i wdt:P495 ?c } ' +
             'OPTIONAL { ?i wdt:P577 ?d . BIND(YEAR(?d) AS ?yy) } } GROUP BY ?i ?it ?en';
           const r2 = await fetchJSON('https://query.wikidata.org/sparql?format=json&query=' + encodeURIComponent(sparql), signal, 7000);
           const bindings = (r2 && r2.results && r2.results.bindings) || [];
@@ -2068,7 +2081,7 @@ Metropolis|1927
             const b = rows.get(c.id);
             const it = b.it && b.it.value;
             const en = b.en && b.en.value;
-            const italian = /entity\/Q652(\s|$)/.test((b.ls && b.ls.value) || '');
+            const italian = isItalianFilm((b.ls && b.ls.value) || '', (b.cs && b.cs.value) || '');
             const t = (italian ? it || en : en || it) || c.label || '';
             const y = validYear(b.y && b.y.value) || validYear(yearIn(c.description));
             return { t, y };
@@ -2094,7 +2107,6 @@ Metropolis|1927
   const fNote = $('#fNote');
   const sug = $('#suggest');
   const ed = { kind: 'diary', entry: null, isNew: false, draft: null, origTitle: '', fromWatch: null };
-  const catalog = FILMS.map(f => ({ t: f.t, y: f.y, n: norm(f.t) }));
 
   function openEditor(id, focusTitle, prefill) {
     const e = id ? byId(id) : null;
@@ -2334,40 +2346,41 @@ Metropolis|1927
   }
 
   function localMatches(nq, exclude) {
-    const mine = new Map();
-    for (const e of entries) {
-      if (e === exclude) continue;
-      const k = norm(e.title) + '|' + (e.year || '');
-      if (!mine.has(k)) mine.set(k, { t: e.title, y: e.year, n: norm(e.title), mine: true });
-    }
     const hits = [];
     const taken = new Set();
-    for (const f of [...mine.values(), ...catalog]) {
-      let score;
-      if (f.n.startsWith(nq)) score = 0;
-      else if ((' ' + f.n).includes(' ' + nq)) score = 1;
-      else if (f.n.includes(nq)) score = 2;
-      else continue;
-      const k = f.n + '|' + (f.y || '');
+    for (const e of entries) {
+      if (e === exclude) continue;
+      const n = norm(e.title);
+      const k = n + '|' + (e.year || '');
+      if (taken.has(k) || !n.includes(nq)) continue;
+      taken.add(k);
+      hits.push({ t: e.title, y: e.year, n, mine: true, score: n.startsWith(nq) ? 0 : 1 });
+    }
+    hits.sort((a, b) => a.score - b.score || (b.y || 0) - (a.y || 0));
+    const mine = hits.slice(0, 3);
+    for (const h of searchFilms(nq, 10)) {
+      const n = h.f.n.slice(1);
+      const k = n + '|' + (h.f.y || '');
       if (taken.has(k)) continue;
       taken.add(k);
-      hits.push({ ...f, score });
+      mine.push({ t: h.f.t, y: h.f.y, n, alt: h.viaAlt ? h.f.a : '' });
     }
-    hits.sort((a, b) => a.score - b.score || (b.mine ? 1 : 0) - (a.mine ? 1 : 0) || (b.y || 0) - (a.y || 0));
-    return hits;
+    return mine;
   }
 
-  const sugRow = (f, i) => `<li><button type="button" data-i="${i}"><span class="t">${esc(f.t)}</span><span class="y">${f.y || ''}${f.mine ? '<span class="mark">In diary</span>' : ''}</span></button></li>`;
+  const sugRow = (f, i) => `<li><button type="button" data-i="${i}"><span class="t">${esc(f.t)}${f.alt ? `<span class="alt">${esc(f.alt)}</span>` : ''}</span><span class="y">${f.y || ''}${f.mine ? '<span class="mark">In diary</span>' : ''}</span></button></li>`;
 
   function suggest(q) {
     stopOnline();
     sugQuery = q;
     const nq = norm(q);
     if (nq.length < 2) return hideSuggest();
-    localHits = localMatches(nq, ed.entry).slice(0, 6);
+    loadCatalog();
+    localHits = localMatches(nq, ed.entry).slice(0, 7);
     onlineRes = [];
     onlineState = 'idle';
-    if (onlineOn() && nq.length >= 3) {
+    // Wikidata only when the local list comes up short (new releases, rare films)
+    if (onlineOn() && nq.length >= 3 && localHits.length < 4) {
       onlineState = 'loading';
       onlineTimer = setTimeout(() => runOnline(q), 400);
     }
@@ -2404,8 +2417,8 @@ Metropolis|1927
     if (onlineState === 'loading') html += '<li class="none">Searching Wikidata…</li>';
     else if (!sugItems.length) {
       if (norm(q).length < 3) return hideSuggest();
-      const why = onlineState === 'error' ? "Couldn't reach Wikidata and it isn't in the built-in list."
-        : onlineOn() ? 'No film found with that title.' : 'Not in the built-in list.';
+      const why = onlineState === 'error' ? "Couldn't reach Wikidata and it isn't in the film list."
+        : onlineOn() ? 'No film found with that title.' : 'Not in the film list.';
       html += `<li class="none">${why} Any title works; add the film year below if you like.</li>`;
     }
     sug.innerHTML = html;
@@ -2426,73 +2439,189 @@ Metropolis|1927
     edChanged();
   });
 
+  /* ---------- big film list: catalog.json (~77,000 films from Wikidata), loaded in the background ---------- */
+  const CAT = { films: null, status: 'idle', promise: null, count: 0, built: '' };
+  const keyOf = (n, y) => n + '|' + (y || '');
+  // n keeps a leading space so word-start matches are a plain includes(' ' + query)
+  const curated = FILMS.map(f => ({ t: f.t, y: f.y, p: 0, a: '', n: ' ' + norm(f.t), na: '', c: true }));
+  const pool = () => CAT.films || curated;
+
+  function loadCatalog() {
+    if (CAT.films) return Promise.resolve(CAT.films);
+    if (CAT.promise) return CAT.promise;
+    CAT.status = 'loading';
+    CAT.promise = fetch('catalog.json', { credentials: 'same-origin' })
+      .then(r => (r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status))))
+      .then(d => {
+        const films = [];
+        const byKey = new Map();
+        for (const row of (d && d.films) || []) {
+          const t = row[0];
+          if (typeof t !== 'string' || !t) continue;
+          const a = typeof row[3] === 'string' ? row[3] : '';
+          const f = { t, y: validYear(row[1]), p: +row[2] || 0, a, n: ' ' + norm(t), na: a ? ' ' + norm(a) : '', c: false };
+          films.push(f);
+          byKey.set(keyOf(f.n, f.y), f);
+        }
+        if (films.length < 1000) throw new Error('catalog too small');
+        for (const c of curated) {  // keep the hand-picked films, flagged so browsing always shows them
+          const hit = byKey.get(keyOf(c.n, c.y));
+          if (hit) hit.c = true; else films.push(c);
+        }
+        CAT.films = films;
+        CAT.count = films.length;
+        CAT.built = (d && d.built) || '';
+        CAT.status = 'ready';
+        catalogReady();
+        return films;
+      })
+      .catch(() => { CAT.status = 'error'; CAT.promise = null; return null; });
+    return CAT.promise;
+  }
+
+  // "The Godfather", "Il sorpasso", "L'avventura": typing without the article still counts as the start of the title.
+  const ARTICLE = /^ (?:the|an|a|il|lo|la|i|gli|le|l|un|uno|una) (?=\S)/;
+  const coreOf = n => { const m = n && ARTICLE.exec(n); return m ? ' ' + n.slice(m[0].length) : ''; };
+  function matchTier(s, c, sq, nq) {
+    // 0 = title starts with the query (1 bonus if it is the whole title), 1 = a word starts with it, 2 = anywhere
+    if (!s) return null;
+    if (s === sq || c === sq) return [0, true];
+    if (s.startsWith(sq) || (c && c.startsWith(sq))) return [0, false];
+    if (s.includes(sq)) return [1, false];
+    if (s.includes(nq)) return [2, false];
+    return null;
+  }
+  function searchFilms(nq, limit) {
+    if (!nq) return [];
+    const sq = ' ' + nq;
+    const res = [];
+    for (const f of pool()) {
+      if (f.nc === undefined) { f.nc = coreOf(f.n); f.nac = coreOf(f.na); }
+      let m = matchTier(f.n, f.nc, sq, nq);
+      let viaAlt = false;
+      const ma = matchTier(f.na, f.nac, sq, nq);
+      if (ma && (!m || ma[0] < m[0] || (ma[0] === m[0] && ma[1] && !m[1]))) { m = ma; viaAlt = true; }
+      if (!m) continue;
+      // An exact title match counts triple, so "Godfather" (2022) doesn't push The Godfather down.
+      res.push({ f, sc: m[0], w: (f.p || 0) * (m[1] ? 3 : 1) + (m[1] ? 0.5 : 0), viaAlt });
+    }
+    res.sort((x, y) => x.sc - y.sc || y.w - x.w || (y.f.y || 0) - (x.f.y || 0));
+    return res.slice(0, limit);
+  }
+
   /* ---------- picker ---------- */
   const pkEl = $('#picker');
   const pkList = $('#pkList');
-  const pkSel = new Set();
-  const pkOnlineSel = new Map();
-  const catKeys = new Set(FILMS.map(f => norm(f.t) + '|' + f.y));
+  const pkSel = new Map();          // key -> { t, y }
   let pkTimer = 0;
   let pkCtl = null;
   let pkRes = [];
   let pkState = 'idle';
   let pkQuery = '';
-  let pkButtons = [];
-  let pkSections = [];
+  let pkBrowseFor = '';             // which list the browse view was built from: 'curated' | 'catalog'
+  let pkBrowseButtons = [];
+  let pkShownKeys = new Set();
   let pkMode = 'diary';
+  let pkSearchTimer = 0;
 
-  function buildPicker() {
-    const order = FILMS.map((f, i) => ({ ...f, i })).sort((a, b) => b.y - a.y || collator.compare(a.t, b.t));
-    const groups = new Map();
-    for (const f of order) {
-      const dec = Math.floor(f.y / 10) * 10;
-      if (!groups.has(dec)) groups.set(dec, []);
-      groups.get(dec).push(f);
+  // Films the picker greys out: already in the diary (and, when filling the watchlist, already on it).
+  function diaryKeys() {
+    const s = new Set();
+    const src = pkMode === 'watch' ? [...entries, ...watch] : entries;
+    for (const e of src) s.add(keyOf(' ' + norm(e.title), e.year || ''));
+    return s;
+  }
+  const isHave = (have, n, y) => have.has(keyOf(n, y)) || have.has(keyOf(n, ''));
+
+  function pickBtn(f, have, viaAlt) {
+    const k = keyOf(f.n, f.y);
+    const h = isHave(have, f.n, f.y);
+    const on = h || pkSel.has(k);
+    const alt = viaAlt && f.a ? `<span class="alt">${esc(f.a)}</span>` : '';
+    return `<li><button class="pick${h ? ' have' : ''}" type="button" data-k="${esc(k)}" data-t="${esc(f.t)}" data-y="${f.y || ''}" aria-pressed="${on}"${h ? ' disabled' : ''}>` +
+      `<span class="box-check"><svg aria-hidden="true"><use href="#i-check"/></svg></span><span class="t">${esc(f.t)}${alt}</span><span class="y">${f.y || ''}</span></button></li>`;
+  }
+
+  // Browse view: the best-known films of each decade (by how many Wikipedias cover them), plus the hand-picked list.
+  function buildBrowse() {
+    const src = pool();
+    const byDec = new Map();
+    for (const f of src) {
+      if (!f.y) continue;
+      const d = Math.floor(f.y / 10) * 10;
+      if (!byDec.has(d)) byDec.set(d, []);
+      byDec.get(d).push(f);
     }
+    const have = diaryKeys();
     let html = '';
-    for (const [dec, list] of groups) {
-      html += `<section class="pk-sec"><h3 class="decade">${dec}s<span>${list.length} films</span></h3><ul class="picks">` +
-        list.map(f => `<li><button class="pick" type="button" data-i="${f.i}" aria-pressed="false"><span class="box-check"><svg aria-hidden="true"><use href="#i-check"/></svg></span><span class="t">${esc(f.t)}</span><span class="y">${f.y}</span></button></li>`).join('') +
-        '</ul></section>';
+    for (const [d, list] of [...byDec].sort((x, y) => y[0] - x[0])) {
+      list.sort((x, y) => y.p - x.p || y.y - x.y || collator.compare(x.t, y.t));
+      const cap = CAT.films ? (d >= 1950 ? 150 : d >= 1920 ? 60 : 25) : Infinity;
+      const shown = list.filter((f, i) => i < cap || f.c);
+      html += `<section class="pk-sec"><h3 class="decade">${d}s<span>${shown.length} films</span></h3><ul class="picks">` +
+        shown.map(f => pickBtn(f, have, false)).join('') + '</ul></section>';
     }
-    pkList.innerHTML = html + '<p class="hint pk-status" id="pkStatus" hidden></p><div id="pkOnline"></div>';
-    pkButtons = $$('.pick', pkList).map(b => ({ b, li: b.parentElement, n: norm(FILMS[+b.dataset.i].t) }));
-    pkSections = $$('.pk-sec', pkList);
+    $('#pkBrowse').innerHTML = html;
+    pkBrowseButtons = $$('#pkBrowse .pick');
+    pkBrowseFor = CAT.films ? 'catalog' : 'curated';
+  }
+
+  function repaintBrowse() {
+    const have = diaryKeys();
+    for (const b of pkBrowseButtons) {
+      const k = b.dataset.k;
+      const [n, y] = [k.slice(0, k.lastIndexOf('|')), k.slice(k.lastIndexOf('|') + 1)];
+      const h = isHave(have, n, y);
+      b.classList.toggle('have', h);
+      b.disabled = h;
+      b.setAttribute('aria-pressed', String(h || pkSel.has(k)));
+    }
   }
 
   function paintPickCount() {
-    const n = pkSel.size + pkOnlineSel.size;
+    const n = pkSel.size;
     const b = $('#pkAdd');
     b.disabled = !n;
     const where = pkMode === 'watch' ? 'watchlist' : 'diary';
     b.textContent = n ? `Add ${n} film${n === 1 ? '' : 's'} to your ${where}` : pkMode === 'watch' ? 'Tick the films you want to see' : "Tick the films you've seen";
   }
 
-  function filterPicker(q) {
-    const nq = norm(q);
-    for (const p of pkButtons) p.li.hidden = !!nq && !p.n.includes(nq);
-    for (const s of pkSections) s.hidden = !s.querySelector('li:not([hidden])');
+  function paintPickHint() {
+    const isW = pkMode === 'watch';
+    const big = CAT.films ? `${CAT.count.toLocaleString('en-US')} films from Wikidata: search any title in English or Italian, or browse the best-known by decade.`
+      : `${FILMS.length} films below${CAT.status === 'loading' ? ' while the full list of 77,000 loads' : ''}.`;
+    $('#pkHint').textContent = `${big} ` + (onlineOn() && !CAT.films ? 'Search also checks Wikidata. ' : '') + (isW ? '' : 'Ticked films arrive unrated and undated.');
   }
 
-
-  // Films the picker greys out: already in the diary (and, when filling the watchlist, already on it).
-  function diaryKeys() {
-    const s = new Set();
-    const pool = pkMode === 'watch' ? [...entries, ...watch] : entries;
-    for (const e of pool) { s.add(norm(e.title) + '|' + (e.year || '')); s.add(norm(e.title) + '|'); }
-    return s;
-  }
   function stopPickerOnline() {
     clearTimeout(pkTimer); pkTimer = 0;
     if (pkCtl) { pkCtl.abort(); pkCtl = null; }
   }
+
   function pickerSearch(q) {
-    filterPicker(q);
     pkQuery = q;
+    const nq = norm(q);
     stopPickerOnline();
     pkRes = [];
     pkState = 'idle';
-    if (onlineOn() && norm(q).length >= 3) {
+    const browsing = nq.length < 2;
+    $('#pkBrowse').hidden = !browsing;
+    $('#pkSearch').hidden = browsing;
+    if (browsing) {
+      pkShownKeys = new Set();
+      $('#pkSearch').innerHTML = '';
+      paintPickerOnline();
+      return;
+    }
+    const have = diaryKeys();
+    const hits = searchFilms(nq, 80);
+    pkShownKeys = new Set(hits.map(h => keyOf(h.f.n, h.f.y)));
+    $('#pkSearch').innerHTML = hits.length
+      ? `<section class="pk-on"><h3 class="decade">Matches<span>${hits.length === 80 ? 'top 80' : hits.length + ' film' + (hits.length === 1 ? '' : 's')}</span></h3><ul class="picks">` +
+        hits.map(h => pickBtn(h.f, have, h.viaAlt)).join('') + '</ul></section>'
+      : '';
+    // Wikidata fills the gaps: brand-new or obscure films the list doesn't have yet.
+    if (onlineOn() && nq.length >= 3 && hits.length < 8) {
       pkState = 'loading';
       pkTimer = setTimeout(() => pickerOnline(q), 450);
     }
@@ -2516,85 +2645,79 @@ Metropolis|1927
   function paintPickerOnline() {
     const box = $('#pkOnline');
     const status = $('#pkStatus');
-    if (!box) return;
     const nq = norm(pkQuery);
     const have = diaryKeys();
-    const list = nq.length >= 3 ? pkRes.filter(f => !catKeys.has(norm(f.t) + '|' + (f.y || ''))) : [];
+    const list = nq.length >= 3
+      ? pkRes.map(f => ({ t: f.t, y: f.y, n: ' ' + norm(f.t) })).filter(f => !pkShownKeys.has(keyOf(f.n, f.y)))
+      : [];
     box.innerHTML = list.length
-      ? `<section class="pk-on"><h3 class="decade">Wikidata<span>${list.length} film${list.length === 1 ? '' : 's'}</span></h3><ul class="picks">` +
-        list.map(f => {
-          const key = norm(f.t) + '|' + (f.y || '');
-          const h = have.has(key);
-          const on = h || pkOnlineSel.has(key);
-          return `<li><button class="pick${h ? ' have' : ''}" type="button" data-key="${esc(key)}" data-t="${esc(f.t)}" data-y="${f.y || ''}" aria-pressed="${on}"${h ? ' disabled' : ''}>` +
-            `<span class="box-check"><svg aria-hidden="true"><use href="#i-check"/></svg></span><span class="t">${esc(f.t)}</span><span class="y">${f.y || ''}</span></button></li>`;
-        }).join('') + '</ul></section>'
+      ? `<section class="pk-on"><h3 class="decade">Wikidata<span>${list.length} more</span></h3><ul class="picks">` +
+        list.map(f => pickBtn(f, have, false)).join('') + '</ul></section>'
       : '';
-    const anyLocal = pkButtons.some(p => !p.li.hidden);
     let msg = '';
-    if (pkState === 'loading') msg = 'Searching Wikidata…';
-    else if (nq.length >= 2 && !anyLocal && !list.length) {
-      msg = pkState === 'error' ? "Not in the list, and Wikidata couldn't be reached."
-        : onlineOn() && nq.length >= 3 ? 'No film found with that title.' : 'Not in the list.';
-    }
+    if (nq.length >= 2 && !pkShownKeys.size && !list.length) {
+      msg = pkState === 'loading' ? 'Searching Wikidata…'
+        : CAT.status === 'loading' ? 'Still loading the full list of films…'
+        : pkState === 'error' ? "No match, and Wikidata couldn't be reached."
+        : 'No film found with that title.';
+    } else if (pkState === 'loading') msg = 'Searching Wikidata…';
     status.textContent = msg;
     status.hidden = !msg;
   }
 
   function openPicker(mode) {
     pkMode = mode === 'watch' ? 'watch' : 'diary';
-    if (!pkButtons.length) buildPicker();
+    loadCatalog();
+    const want = CAT.films ? 'catalog' : 'curated';
+    if (pkBrowseFor !== want) buildBrowse();
     pkSel.clear();
-    const have = diaryKeys();
-    let already = 0;
-    for (const p of pkButtons) {
-      const f = FILMS[+p.b.dataset.i];
-      const h = have.has(p.n + '|' + f.y) || have.has(p.n + '|');
-      if (h) already++;
-      p.b.classList.toggle('have', h);
-      p.b.disabled = h;
-      p.b.setAttribute('aria-pressed', String(h));
-    }
-    pkOnlineSel.clear();
+    repaintBrowse();
     $('#pq').value = '';
     pickerSearch('');
-    const isW = pkMode === 'watch';
-    $('#pkHeading').textContent = isW ? 'Want to see?' : 'Seen it?';
-    $('#pkHint').textContent = `${FILMS.length} films below, newest first${already ? ` · ${already} greyed out, already ${isW ? 'seen or saved' : 'in your diary'}` : ''}. ` +
-      (onlineOn() ? 'Search also checks Wikidata, so you can find any film. ' : '') + (isW ? '' : 'Ticked films arrive unrated and undated.');
+    $('#pkHeading').textContent = pkMode === 'watch' ? 'Want to see?' : 'Seen it?';
+    paintPickHint();
     paintPickCount();
     pkList.scrollTop = 0;
     if (stack.includes(setEl)) closeSheet(setEl);
     openSheet(pkEl);
   }
-  closers.picker = () => { stopPickerOnline(); $('#pq').blur(); closeSheet(pkEl); };
+  closers.picker = () => { stopPickerOnline(); clearTimeout(pkSearchTimer); $('#pq').blur(); closeSheet(pkEl); };
+
+  // The full list arrived: swap it into whatever is open.
+  function catalogReady() {
+    if (stack.includes(pkEl)) {
+      if (!pkQuery || norm(pkQuery).length < 2) { const top = pkList.scrollTop; buildBrowse(); repaintBrowse(); pkList.scrollTop = top; }
+      else pickerSearch(pkQuery);
+      paintPickHint();
+    } else pkBrowseFor = '';
+    if (stack.includes(edEl) && !sug.hidden && sugQuery) suggest(sugQuery);
+    const sub = $('#sPickSub');
+    if (sub) sub.textContent = `${CAT.count.toLocaleString('en-US')} films from Wikidata, refreshed monthly`;
+  }
 
   pkList.addEventListener('click', ev => {
     const b = ev.target.closest('.pick');
     if (!b || b.disabled) return;
-    if (b.dataset.key) {
-      const k = b.dataset.key;
-      if (pkOnlineSel.has(k)) pkOnlineSel.delete(k);
-      else pkOnlineSel.set(k, { t: b.dataset.t, y: validYear(b.dataset.y) });
-      b.setAttribute('aria-pressed', String(pkOnlineSel.has(k)));
-      paintPickCount();
-      return;
-    }
-    const i = +b.dataset.i;
-    if (pkSel.has(i)) pkSel.delete(i); else pkSel.add(i);
-    b.setAttribute('aria-pressed', String(pkSel.has(i)));
+    const k = b.dataset.k;
+    if (pkSel.has(k)) pkSel.delete(k);
+    else pkSel.set(k, { t: b.dataset.t, y: validYear(b.dataset.y) });
+    // the same film can be on screen twice (browse and search): keep both in step
+    for (const x of pkList.querySelectorAll(`.pick[data-k="${cssId(k)}"]`)) x.setAttribute('aria-pressed', String(pkSel.has(k)));
     paintPickCount();
   });
-  $('#pq').addEventListener('input', ev => pickerSearch(ev.target.value));
+  $('#pq').addEventListener('input', ev => {
+    clearTimeout(pkSearchTimer);
+    const v = ev.target.value;
+    pkSearchTimer = setTimeout(() => pickerSearch(v), 120);
+  });
   $('#pq').addEventListener('keydown', ev => { if (ev.key === 'Enter') ev.target.blur(); });
   $('#pkClose').addEventListener('click', closers.picker);
   $('#pkAdd').addEventListener('click', () => {
-    const n = pkSel.size + pkOnlineSel.size;
+    const n = pkSel.size;
     if (!n) return;
     const now = Date.now();
-    const picked = [...[...pkSel].map(i => FILMS[i]), ...pkOnlineSel.values()];
+    const picked = [...pkSel.values()];
     pkSel.clear();
-    pkOnlineSel.clear();
     if (pkMode === 'watch') {
       for (const f of picked) {
         const w = sanitizeW({ id: uid(), title: f.t, year: f.y, note: '', added: now, updated: now });
@@ -2802,12 +2925,14 @@ Metropolis|1927
   banner();
   render();
 
+  setTimeout(loadCatalog, 2500);
+
   if (BUILD === 'app' && 'serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
     window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
   }
 
   // Test hook (harmless in production): lets automated checks read state.
-  window.__visto = { get entries() { return entries; }, get watch() { return watch; }, render };
+  window.__visto = { get entries() { return entries; }, get watch() { return watch; }, get catalog() { return CAT; }, render, search: searchFilms };
 })();
 
 </script>

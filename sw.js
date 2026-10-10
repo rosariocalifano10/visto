@@ -1,6 +1,8 @@
 // Visto service worker: everything is cached so the app opens with no connection.
 // Bump CACHE when you publish a new version; the update applies on the next launch.
-const CACHE = 'visto-v5';
+const CACHE = 'visto-v6';
+// The big film list lives in its own cache so app updates don't download it again.
+const DATA = 'visto-data';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon-180.png', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', event => {
@@ -15,7 +17,7 @@ self.addEventListener('install', event => {
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
+      .then(keys => Promise.all(keys.filter(k => k !== CACHE && k !== DATA).map(k => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
@@ -24,7 +26,7 @@ self.addEventListener('fetch', event => {
   const req = event.request;
   if (req.method !== 'GET' || new URL(req.url).origin !== self.location.origin) return;
   event.respondWith((async () => {
-    const cache = await caches.open(CACHE);
+    const cache = await caches.open(new URL(req.url).pathname.endsWith('/catalog.json') ? DATA : CACHE);
     const cached = await cache.match(req, { ignoreSearch: true });
     // Serve from cache right away and refresh it in the background, checked with the server rather than the HTTP cache.
     const network = fetch(req.url, { cache: 'no-cache', credentials: 'same-origin' })
