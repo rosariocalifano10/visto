@@ -18,6 +18,7 @@ import re
 import sys
 import time
 import unicodedata
+import urllib.error
 import urllib.parse
 import urllib.request
 
@@ -73,18 +74,34 @@ def wiki_title(t):
     return WIKI_SUFFIX.sub("", t).strip() if t else None
 
 
+def open_post(url, data, timeout, hops=5):
+    """POST that follows 307/308 redirects (urllib only follows them for GET)."""
+    for _ in range(hops):
+        req = urllib.request.Request(url, data=data, method="POST", headers={
+            "User-Agent": UA,
+            "Accept": "application/sparql-results+json",
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Accept-Encoding": "identity",
+        })
+        try:
+            return urllib.request.urlopen(req, timeout=timeout)
+        except urllib.error.HTTPError as e:
+            loc = e.headers.get("Location")
+            if e.code in (301, 302, 303, 307, 308) and loc:
+                url = urllib.parse.urljoin(url, loc)
+                print(f"  redirected ({e.code}) to {url}", flush=True)
+                continue
+            body = e.read()[:300].decode("utf-8", "replace")
+            raise RuntimeError(f"HTTP {e.code}: {body}") from None
+    raise RuntimeError("too many redirects")
+
+
 def run_query(sparql, timeout=120):
     """POST the query and stream the answer, printing progress so a stall shows up in the log."""
     data = urllib.parse.urlencode({"query": sparql}).encode()
-    req = urllib.request.Request(ENDPOINT, data=data, method="POST", headers={
-        "User-Agent": UA,
-        "Accept": "application/sparql-results+json",
-        "Content-Type": "application/x-www-form-urlencoded",
-        "Accept-Encoding": "identity",
-    })
     t0 = time.time()
     print(f"POST {ENDPOINT} ({len(data)} bytes of query)", flush=True)
-    with urllib.request.urlopen(req, timeout=timeout) as r:
+    with open_post(ENDPOINT, data, timeout) as r:
         print(f"  HTTP {r.status} after {time.time() - t0:.1f}s, content-type {r.headers.get('Content-Type')}", flush=True)
         chunks, total, last = [], 0, 0
         while True:
