@@ -1,10 +1,15 @@
 // Visto service worker: everything is cached so the app opens with no connection.
 // Bump CACHE when you publish a new version; the update applies on the next launch.
-const CACHE = 'visto-v4';
+const CACHE = 'visto-v5';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon-180.png', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', event => {
-  event.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));
+  // cache: 'reload' skips the browser's HTTP cache, so a new version never precaches an old copy
+  event.waitUntil(
+    caches.open(CACHE)
+      .then(c => c.addAll(ASSETS.map(u => new Request(u, { cache: 'reload' }))))
+      .then(() => self.skipWaiting())
+  );
 });
 
 self.addEventListener('activate', event => {
@@ -21,7 +26,8 @@ self.addEventListener('fetch', event => {
   event.respondWith((async () => {
     const cache = await caches.open(CACHE);
     const cached = await cache.match(req, { ignoreSearch: true });
-    const network = fetch(req)
+    // Serve from cache right away and refresh it in the background, checked with the server rather than the HTTP cache.
+    const network = fetch(req.url, { cache: 'no-cache', credentials: 'same-origin' })
       .then(res => { if (res && res.ok) cache.put(req, res.clone()); return res; })
       .catch(() => null);
     if (cached) {
