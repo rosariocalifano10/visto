@@ -280,9 +280,11 @@ main { max-width: 640px; margin: 0 auto; padding: 4px 16px calc(120px + var(--bo
 .tk-info .has-note { display: inline-flex; align-items: center; }
 .tk-info .has-note svg { width: 14px; height: 14px; }
 .stars { grid-area: stars; display: flex; align-items: center; margin-right: -2px; }
-.star { width: 30px; height: 34px; display: grid; place-items: center; color: var(--star-off); }
-.star svg { width: 18px; height: 18px; }
+.star { position: relative; width: 30px; height: 34px; display: grid; place-items: center; color: var(--star-off); }
+.star svg { width: 18px; height: 18px; grid-area: 1 / 1; }
+.star .hf { display: none; color: var(--star); }
 .star.on { color: var(--star); }
+.star.half .hf { display: block; }
 .star.pop svg { animation: pop .34s cubic-bezier(.3, 1.6, .5, 1); }
 @keyframes pop { 0% { transform: scale(.6); } 60% { transform: scale(1.3); } 100% { transform: scale(1); } }
 .ticket.flash .tk { animation: flash 1.2s ease; }
@@ -383,7 +385,7 @@ main { max-width: 640px; margin: 0 auto; padding: 4px 16px calc(120px + var(--bo
 .venue [data-v="cinema"][aria-pressed="true"] { background: var(--cinema); color: var(--on-cinema); box-shadow: none; }
 .venue [data-v="home"][aria-pressed="true"] { background: var(--home); color: var(--on-home); box-shadow: none; }
 .venue [aria-pressed="true"] svg { color: inherit; }
-.bigstars { display: flex; justify-content: space-between; background: var(--ticket); box-shadow: var(--shadow); border-radius: 14px; padding: 6px 10px; }
+.bigstars { touch-action: none; user-select: none; -webkit-user-select: none; display: flex; justify-content: space-between; background: var(--ticket); box-shadow: var(--shadow); border-radius: 14px; padding: 6px 10px; }
 .bigstars .star { width: 52px; height: 52px; }
 .bigstars .star svg { width: 34px; height: 34px; }
 .when { display: grid; grid-template-columns: minmax(0, 1fr) 96px; gap: 10px; }
@@ -498,6 +500,9 @@ label.item { cursor: pointer; }
     </symbol>
     <symbol id="i-star" viewBox="0 0 24 24">
       <path fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round" d="M12 2.8l2.75 5.9 6.45.75-4.8 4.4 1.3 6.35L12 17l-5.7 3.2 1.3-6.35-4.8-4.4 6.45-.75z"/>
+    </symbol>
+    <symbol id="i-star-l" viewBox="0 0 24 24">
+      <path fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round" d="M12 2.8V17l-5.7 3.2 1.3-6.35-4.8-4.4 6.45-.75z"/>
     </symbol>
     <symbol id="i-search" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L20 20"/></g></symbol>
     <symbol id="i-x" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></symbol>
@@ -665,7 +670,7 @@ label.item { cursor: pointer; }
     <div class="list-card">
       <button class="item danger" id="sErase" type="button"><svg><use href="#i-trash"/></svg><span><span class="t" id="sEraseT">Erase everything</span><span class="s" id="sEraseS">Deletes every entry on this device</span></span></button>
     </div>
-    <p class="colophon">Visto v1.1 · no account, no tracking. Your diary never leaves this device unless you export it. Film data from Wikidata (CC0).</p>
+    <p class="colophon">Visto v1.2 · no account, no tracking. Your diary never leaves this device unless you export it. Film data from Wikidata (CC0).</p>
   </div>
 </section>
 
@@ -1361,7 +1366,7 @@ Metropolis|1927
 
   function sanitize(e) {
     if (!e || typeof e.title !== 'string' || !e.title.trim()) return null;
-    const r = parseInt(e.rating, 10);
+    const r = Math.round(parseFloat(e.rating) * 2) / 2;
     return {
       id: e.id ? String(e.id) : uid(),
       title: e.title.trim().slice(0, 200),
@@ -1427,12 +1432,32 @@ Metropolis|1927
 
   /* ---------- views ---------- */
   const diary = $('#diary');
-  const starSVG = '<svg aria-hidden="true"><use href="#i-star"/></svg>';
+  const starSVG = '<svg aria-hidden="true"><use href="#i-star"/></svg><svg class="hf" aria-hidden="true"><use href="#i-star-l"/></svg>';
+  const fmtStars = r => (Math.floor(r) || (r % 1 ? '' : '0')) + (r % 1 ? '½' : '');
+  const starState = (i, r) => (r >= i ? 'on' : r >= i - 0.5 ? 'half' : '');
+  function paintStars(box, r) {
+    for (const s of box.querySelectorAll('.star')) {
+      const st = starState(+s.dataset.star, r);
+      s.classList.toggle('on', st === 'on');
+      s.classList.toggle('half', st === 'half');
+      s.setAttribute('aria-pressed', String(!!st));
+    }
+  }
+  // Which value a tap at x means: left half of a star = half a star less.
+  function starValueAt(star, clientX, fromKeyboard) {
+    const n = +star.dataset.star;
+    if (fromKeyboard) return n;
+    const r = star.getBoundingClientRect();
+    return clientX < r.left + r.width / 2 ? n - 0.5 : n;
+  }
   const ICON = { cinema: 'popcorn', home: 'laptop', unknown: 'unknown' };
 
   function starsHTML(r) {
     let s = '';
-    for (let i = 1; i <= 5; i++) s += `<button type="button" class="star${i <= r ? ' on' : ''}" data-star="${i}" aria-label="${i} star${i > 1 ? 's' : ''}" aria-pressed="${i <= r}">${starSVG}</button>`;
+    for (let i = 1; i <= 5; i++) {
+      const st = starState(i, r);
+      s += `<button type="button" class="star${st ? ' ' + st : ''}" data-star="${i}" aria-label="${i} star${i > 1 ? 's' : ''}" aria-pressed="${!!st}">${starSVG}</button>`;
+    }
     return s;
   }
 
@@ -1488,7 +1513,7 @@ Metropolis|1927
       const p = parseISO(e.date);
       return p ? { k: `${p.y}-${p.m}`, label: `${MONTHS[p.m - 1]} ${p.y}` } : { k: 'none', label: 'No date' };
     }
-    if (ui.sort === 'stars') return e.rating ? { k: 's' + e.rating, label: '★'.repeat(e.rating), stars: true } : { k: 's0', label: 'Unrated' };
+    if (ui.sort === 'stars') return e.rating ? { k: 's' + e.rating, label: '★'.repeat(Math.floor(e.rating)) + (e.rating % 1 ? '½' : ''), stars: true } : { k: 's0', label: 'Unrated' };
     const c = norm(e.title).charAt(0);
     return /[a-z]/.test(c) ? { k: c, label: c.toUpperCase() } : { k: '#', label: '0–9' };
   }
@@ -1636,7 +1661,8 @@ Metropolis|1927
     const star = ev.target.closest('.star');
     if (star) {
       const n = +star.dataset.star;
-      e.rating = e.rating === n ? 0 : n;
+      const v = starValueAt(star, ev.clientX, ev.detail === 0);
+      e.rating = e.rating === v ? 0 : v;
       touch(e); refreshTicket(e, { pop: e.rating ? n : 0 }); settle(e);
       return;
     }
@@ -1661,6 +1687,7 @@ Metropolis|1927
   diary.addEventListener('pointerdown', ev => {
     const tk = ev.target.closest('.tk');
     if (!tk || (ev.pointerType === 'mouse' && ev.button !== 0)) return;
+    if (ev.target.closest('.stars')) return;
     const li = tk.parentElement;
     closeOtherSwipes(li);
     sw = { li, tk, id: ev.pointerId, x0: ev.clientX, y0: ev.clientY, base: li.classList.contains('open') ? OPEN_X : 0, x: 0, active: false };
@@ -1870,12 +1897,8 @@ Metropolis|1927
     $('#fTitleClear').hidden = !fTitle.value;
     for (const b of $$('#venuePick button')) b.setAttribute('aria-pressed', String(b.dataset.v === d.venue));
     $('#venueVal').textContent = d.venue === 'cinema' ? 'At the cinema · tap again to clear' : d.venue === 'home' ? 'At home · tap again to clear' : 'Not set';
-    $('#starsVal').textContent = d.rating ? `${d.rating} / 5 · tap again to clear` : 'Not rated';
-    for (const s of $$('#bigStars .star')) {
-      const on = +s.dataset.star <= d.rating;
-      s.classList.toggle('on', on);
-      s.setAttribute('aria-pressed', String(on));
-    }
+    $('#starsVal').textContent = d.rating ? `${fmtStars(d.rating)} / 5 · tap again to clear` : 'Left half of a star = ½';
+    paintStars($('#bigStars'), d.rating);
   }
 
   function edChanged() {
@@ -1896,15 +1919,58 @@ Metropolis|1927
   }
   closers.editor = closeEditor;
 
-  $('#bigStars').innerHTML = starsHTML(0);
-  $('#bigStars').addEventListener('click', ev => {
+  const bigStars = $('#bigStars');
+  bigStars.innerHTML = starsHTML(0);
+  // value under the finger, treating the gaps between stars as part of the nearest star
+  function bigValueAt(x) {
+    const stars = $$('.star', bigStars);
+    for (let i = 0; i < stars.length; i++) {
+      const r = stars[i].getBoundingClientRect();
+      const next = stars[i + 1] && stars[i + 1].getBoundingClientRect();
+      if (!next || x < (r.right + next.left) / 2) return starValueAt(stars[i], x, false);
+    }
+    return 5;
+  }
+  function setDraftRating(v, popIt) {
+    const prev = ed.draft.rating;
+    ed.draft.rating = Math.max(0, Math.min(5, v));
+    if (popIt && ed.draft.rating && ed.draft.rating !== prev) {
+      const s = bigStars.querySelector(`.star[data-star="${Math.ceil(ed.draft.rating)}"]`);
+      for (const x of $$('.star', bigStars)) x.classList.remove('pop');
+      if (s) { void s.offsetWidth; s.classList.add('pop'); }
+    }
+    edChanged();
+  }
+  let bsDrag = null;
+  let bsSuppress = 0;
+  bigStars.addEventListener('pointerdown', ev => {
+    if (ev.pointerType === 'mouse' && ev.button !== 0) return;
+    bsDrag = { id: ev.pointerId, x0: ev.clientX, moved: false, r0: ed.draft.rating };
+    try { bigStars.setPointerCapture(ev.pointerId); } catch (err) { /* ignore */ }
+  });
+  bigStars.addEventListener('pointermove', ev => {
+    if (!bsDrag || ev.pointerId !== bsDrag.id) return;
+    if (!bsDrag.moved && Math.abs(ev.clientX - bsDrag.x0) > 6) bsDrag.moved = true;
+    if (bsDrag.moved) setDraftRating(bigValueAt(ev.clientX), true);
+  });
+  const bsEnd = (ev, cancelled) => {
+    if (!bsDrag || ev.pointerId !== bsDrag.id) return;
+    const d = bsDrag;
+    bsDrag = null;
+    bsSuppress = performance.now() + 400;
+    if (cancelled || d.moved) return;
+    const v = bigValueAt(ev.clientX);
+    setDraftRating(d.r0 === v ? 0 : v, true);
+  };
+  bigStars.addEventListener('pointerup', ev => bsEnd(ev, false));
+  bigStars.addEventListener('pointercancel', ev => bsEnd(ev, true));
+  // keyboard (Enter/Space on a focused star) arrives as a click without a pointer
+  bigStars.addEventListener('click', ev => {
+    if (performance.now() < bsSuppress || ev.detail !== 0) return;
     const s = ev.target.closest('.star');
     if (!s) return;
     const n = +s.dataset.star;
-    ed.draft.rating = ed.draft.rating === n ? 0 : n;
-    for (const x of $$('#bigStars .star')) x.classList.remove('pop');
-    if (ed.draft.rating) { void s.offsetWidth; s.classList.add('pop'); }
-    edChanged();
+    setDraftRating(ed.draft.rating === n ? 0 : n, true);
   });
   $('#venuePick').addEventListener('click', ev => {
     const b = ev.target.closest('button');

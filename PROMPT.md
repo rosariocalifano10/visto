@@ -1,7 +1,7 @@
 # Visto — a personal film diary for iPhone
 
 ## Goal
-A private log of every film I watch: title, where I saw it (popcorn = cinema, laptop = home), and 1–5 stars. Quick to add, effortless to edit, good-looking enough that I enjoy opening it.
+A private log of every film I watch: title, where I saw it (popcorn = cinema, laptop = home), and 1–5 stars in half steps. Quick to add, effortless to edit, good-looking enough that I enjoy opening it.
 
 ## Platform
 - Home Screen web app: plain HTML/CSS/JS, no frameworks, no build step.
@@ -11,11 +11,11 @@ A private log of every film I watch: title, where I saw it (popcorn = cinema, la
 - Code hosted once on free static hosting (GitHub Pages). The hosted code contains no personal data.
 
 ## Data
-One entry per viewing; a rewatch is a new entry. Fields: title, year (optional), date watched (defaults to today, can be blank), venue (cinema / home / unknown), stars 0–5 (0 = unrated), note.
+One entry per viewing; a rewatch is a new entry. Fields: title, year (optional), date watched (defaults to today, can be blank), venue (cinema / home / unknown), stars 0–5 in half steps (0 = unrated), note.
 
 ## Screens
 1. **Diary** — entries grouped by month. Each row: venue icon, title, year, date, stars. Search, filters (All / Cinema / Home / Unrated), sort (recent / stars / title), header stats (total, this year, average stars), rewatch count.
-2. **Add / Edit sheet** — title with autocomplete from a bundled film catalog plus Wikidata, popcorn/laptop toggle, tap-to-rate stars (tap the same star to clear), date, note. Edits save as you type. Delete with undo.
+2. **Add / Edit sheet** — title with autocomplete from a bundled film catalog plus Wikidata, popcorn/laptop toggle, stars: tap a star (left half = ½) or slide across them, tap the same value to clear, date, note. Edits save as you type. Delete with undo.
 3. **Already seen? picker** — several hundred well-known films grouped by decade; its search also queries Wikidata so any film can be found. Tick the ones you've seen and add them in one go; they arrive unrated with venue unknown.
 4. **Settings** — appearance (System / Light / Dark), online search on/off, export/import backup, add from the list, erase all.
 

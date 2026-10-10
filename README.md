@@ -1,6 +1,6 @@
 # Visto
 
-A private film diary for iPhone. Popcorn = seen at the cinema, laptop = seen at home, 1–5 stars.
+A private film diary for iPhone. Popcorn = seen at the cinema, laptop = seen at home, 1–5 stars with halves.
 It works offline, needs no account, and your entries never leave the phone unless you export them.
 
 ## 1. Put it online once (free, GitHub Pages)
