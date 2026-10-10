@@ -8,7 +8,7 @@ Data comes from QLever (University of Freiburg), a fast public SPARQL endpoint o
 the main Wikidata query service times out on a query this size.
 
 Output: catalog.json  {"v":1, "built":..., "count":N, "films":[[title, year, popularity, alt?], ...]}
-  - title: Italian title for Italian films, English title for everything else
+  - title: Italian title for Italian films (made in Italy, in Italian), English title for everything else
   - alt:   the other-language title when it differs, so searching either name finds the film
   - popularity: number of Wikipedia language editions with an article on the film
 """
@@ -147,7 +147,8 @@ def main(out_path, report_path):
             continue
         langs = (val(b, "langs") or "").split()
         countries = (val(b, "countries") or "").split()
-        italian = ITALIAN_LANG in langs or (not langs and ITALY in countries)
+        # Italian film = made in Italy and in Italian (The Godfather has Italian dialogue but is American)
+        italian = ITALY in countries and (ITALIAN_LANG in langs or not langs)
         it, en = val(b, "it"), val(b, "en")
         if not en and val(b, "enw"):
             en = wiki_title(val(b, "enw")); fixed_en += 1
