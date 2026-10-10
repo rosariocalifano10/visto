@@ -1,6 +1,6 @@
 // Visto service worker: everything is cached so the app opens with no connection.
 // Bump CACHE when you publish a new version; the update applies on the next launch.
-const CACHE = 'visto-v2';
+const CACHE = 'visto-v3';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon-180.png', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', event => {

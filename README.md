@@ -1,6 +1,6 @@
 # Visto
 
-A private film diary for iPhone. Popcorn = seen at the cinema, laptop = seen at home, 1–5 stars with halves.
+A private film diary for iPhone. Popcorn = seen at the cinema, laptop = seen at home, 1–5 stars with halves, plus a watchlist of films you want to see.
 It works offline, needs no account, and your entries never leave the phone unless you export them.
 
 ## 1. Put it online once (free, GitHub Pages)
@@ -27,7 +27,7 @@ When you type a title, Visto also looks it up on Wikidata (free, no account), so
 
 ## Backups
 
-Settings → **Export backup** opens the share sheet: choose *Save to Files* (iCloud Drive is a good place).
+Backups include both the diary and the watchlist. Settings → **Export backup** opens the share sheet: choose *Save to Files* (iCloud Drive is a good place).
 Settings → **Import backup** merges a backup into what's on the phone; for an entry present in both, the more recently edited copy wins.
 
 Deleting the Visto icon from the Home Screen deletes its data. Export before you do that, or before resetting the phone.

@@ -201,7 +201,7 @@ svg { display: block; }
 .sort svg { position: absolute; right: 10px; top: 50%; width: 14px; height: 14px; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
 
 /* ---------- Diary ---------- */
-main { max-width: 640px; margin: 0 auto; padding: 4px 16px calc(120px + var(--bot)); }
+main { max-width: 640px; margin: 0 auto; padding: 4px 16px calc(170px + var(--bot)); }
 .group { margin-top: 18px; }
 .group:first-child { margin-top: 6px; }
 .group-h {
@@ -315,7 +315,7 @@ main { max-width: 640px; margin: 0 auto; padding: 4px 16px calc(120px + var(--bo
 .fab {
   position: fixed; z-index: 15;
   right: max(16px, calc(50% - 320px + 16px));
-  bottom: calc(20px + var(--bot));
+  bottom: calc(82px + var(--bot));
   width: 62px; height: 62px; border-radius: 50%;
   background: var(--ink); color: var(--bg);
   display: grid; place-items: center;
@@ -324,6 +324,53 @@ main { max-width: 640px; margin: 0 auto; padding: 4px 16px calc(120px + var(--bo
 }
 .fab:active { transform: scale(.92); }
 .fab svg { width: 28px; height: 28px; }
+
+/* ---------- Bottom tab bar: a second marquee ---------- */
+.tabbar {
+  position: fixed; z-index: 25; left: 0; right: 0; bottom: 0;
+  background: var(--marquee);
+  padding: 8px max(16px, calc(50% - 304px)) calc(8px + var(--bot));
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+}
+.tab {
+  position: relative; height: 50px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  color: var(--marquee-muted);
+  font: 700 18px/1 var(--display); letter-spacing: .06em; text-transform: uppercase;
+  transition: color .2s ease, background-color .2s ease;
+}
+.tab svg { width: 22px; height: 22px; flex: none; }
+.tab .n { font: 500 11px/1 var(--mono); letter-spacing: .02em; opacity: .75; font-variant-numeric: tabular-nums; }
+.tab[aria-pressed="true"] { color: var(--marquee-ink); background: rgba(255, 255, 255, .07); }
+.tab[aria-pressed="true"]::before {
+  content: ""; position: absolute; top: 5px; left: 50%; width: 5px; height: 5px; margin-left: -2.5px; border-radius: 50%;
+  background: var(--bulb); box-shadow: 0 0 8px 2px rgba(255, 200, 100, .55);
+}
+
+/* ---------- Watchlist rows: a ticket not torn yet ---------- */
+.wl .tk { grid-template-columns: minmax(0, 1fr) auto; min-height: 78px; align-items: center; }
+.wl .tk::before, .wl .tk::after { display: none; }
+.wl .tk-body {
+  border-left: 0; align-self: stretch;
+  grid-template-columns: minmax(0, 1fr); grid-template-areas: "title" "info" "note";
+  align-content: center; gap: 6px; padding: 14px 8px 13px 16px;
+}
+.wl-note { grid-area: note; font-size: 14px; line-height: 1.35; color: var(--muted); overflow-wrap: anywhere; }
+.seen {
+  margin-right: 12px; height: 38px; padding: 0 13px; border-radius: 19px;
+  display: inline-flex; align-items: center; gap: 6px; flex: none;
+  font: 500 12px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase;
+  color: var(--ink); box-shadow: inset 0 0 0 1.5px var(--line);
+  transition: background-color .15s ease, transform .15s ease;
+}
+.seen:active { background: var(--field); transform: scale(.96); }
+.seen svg { width: 14px; height: 14px; color: var(--star); }
+.admit.coming { font-size: 26px; }
+.is-watch .only-diary { display: none !important; }
+.is-watch .when { grid-template-columns: minmax(0, 160px); margin-top: 18px; }
+.seen-btn { display: flex; width: 100%; margin-top: 28px; }
+.seen-btn svg { width: 18px; height: 18px; }
+.seen-btn + .danger-link { margin-top: 10px; }
 
 /* ---------- Sheets ---------- */
 .scrim { position: fixed; inset: 0; background: var(--scrim); z-index: 40; opacity: 0; pointer-events: none; transition: opacity .3s ease; }
@@ -460,7 +507,7 @@ label.item { cursor: pointer; }
 
 /* toast */
 .toast {
-  position: fixed; z-index: 60; left: 50%; bottom: calc(96px + var(--bot));
+  position: fixed; z-index: 60; left: 50%; bottom: calc(158px + var(--bot));
   transform: translate(-50%, 20px); opacity: 0; pointer-events: none;
   width: max-content; max-width: calc(100% - 32px);
   display: flex; align-items: center; gap: 14px;
@@ -504,6 +551,8 @@ label.item { cursor: pointer; }
     <symbol id="i-star-l" viewBox="0 0 24 24">
       <path fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round" d="M12 2.8V17l-5.7 3.2 1.3-6.35-4.8-4.4 6.45-.75z"/>
     </symbol>
+    <symbol id="i-ticket" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M3.5 7.5a1.5 1.5 0 0 1 1.5-1.5h14a1.5 1.5 0 0 1 1.5 1.5v2a2.5 2.5 0 0 0 0 5v2a1.5 1.5 0 0 1-1.5 1.5H5a1.5 1.5 0 0 1-1.5-1.5v-2a2.5 2.5 0 0 0 0-5z"/><path d="M9 6.5v11" stroke-dasharray="1.6 2"/></g></symbol>
+    <symbol id="i-bookmark" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" d="M6.5 4h11a1 1 0 0 1 1 1v15.2l-6.5-4.1-6.5 4.1V5a1 1 0 0 1 1-1z"/></symbol>
     <symbol id="i-search" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L20 20"/></g></symbol>
     <symbol id="i-x" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></symbol>
     <symbol id="i-plus" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" d="M12 5v14M5 12h14"/></symbol>
@@ -563,6 +612,11 @@ label.item { cursor: pointer; }
 <main id="diary"></main>
 
 <button class="fab" id="add" type="button" aria-label="Log a film"><svg><use href="#i-plus"/></svg></button>
+
+<nav class="tabbar" id="tabbar" aria-label="Sections">
+  <button class="tab" type="button" data-tab="diary" aria-pressed="true"><svg><use href="#i-ticket"/></svg><span>Diary</span><span class="n" data-tn="diary"></span></button>
+  <button class="tab" type="button" data-tab="watch" aria-pressed="false"><svg><use href="#i-bookmark"/></svg><span>Watchlist</span><span class="n" data-tn="watch"></span></button>
+</nav>
 <div class="scrim" id="scrim"></div>
 
 <section class="sheet" id="editor" role="dialog" aria-modal="true" aria-labelledby="edHeading" inert>
@@ -582,18 +636,18 @@ label.item { cursor: pointer; }
     </div>
     <ul class="suggest" id="suggest" hidden></ul>
 
-    <div class="label"><span>Where</span><span class="val" id="venueVal">Not set</span></div>
-    <div class="venue" id="venuePick" role="group" aria-label="Where you watched it">
+    <div class="label only-diary"><span>Where</span><span class="val" id="venueVal">Not set</span></div>
+    <div class="venue only-diary" id="venuePick" role="group" aria-label="Where you watched it">
       <button type="button" data-v="cinema" aria-pressed="false"><svg><use href="#i-popcorn"/></svg>Cinema</button>
       <button type="button" data-v="home" aria-pressed="false"><svg><use href="#i-laptop"/></svg>Home</button>
     </div>
 
-    <div class="label"><span>Stars</span><span class="val" id="starsVal">Not rated</span></div>
-    <div class="bigstars" id="bigStars" role="group" aria-label="Rating"></div>
+    <div class="label only-diary"><span>Stars</span><span class="val" id="starsVal">Not rated</span></div>
+    <div class="bigstars only-diary" id="bigStars" role="group" aria-label="Rating"></div>
 
-    <div class="label"><span>When</span></div>
+    <div class="label only-diary"><span id="edWhenLabel">When</span></div>
     <div class="when">
-      <div class="box">
+      <div class="box only-diary">
         <label for="fDate">Date watched</label>
         <input id="fDate" type="date">
         <div class="mini"><button type="button" id="dToday">Today</button><button type="button" id="dNone">No date</button></div>
@@ -608,6 +662,7 @@ label.item { cursor: pointer; }
     <label class="vh" for="fNote">Note</label>
     <textarea id="fNote" placeholder="Who you went with, a line you loved…"></textarea>
 
+    <button class="btn seen-btn" id="edSeen" type="button" hidden><svg aria-hidden="true"><use href="#i-check"/></svg>I've seen it — log it</button>
     <button class="danger-link" id="edDelete" type="button" hidden>Delete this entry</button>
   </div>
 </section>
@@ -645,6 +700,7 @@ label.item { cursor: pointer; }
   <div class="sheet-body">
     <div class="list-card">
       <button class="item" id="sPick" type="button"><svg><use href="#i-list"/></svg><span><span class="t">Tick off films you've seen</span><span class="s" id="sPickSub">A list of well-known films, by decade</span></span></button>
+      <button class="item" id="sWatchPick" type="button"><svg><use href="#i-bookmark"/></svg><span><span class="t">Pick films you want to see</span><span class="s">Same list, straight into your watchlist</span></span></button>
     </div>
     <div class="label"><span>Appearance</span></div>
     <div class="seg" id="themePick" role="group" aria-label="Appearance">
@@ -670,7 +726,7 @@ label.item { cursor: pointer; }
     <div class="list-card">
       <button class="item danger" id="sErase" type="button"><svg><use href="#i-trash"/></svg><span><span class="t" id="sEraseT">Erase everything</span><span class="s" id="sEraseS">Deletes every entry on this device</span></span></button>
     </div>
-    <p class="colophon">Visto v1.2 · no account, no tracking. Your diary never leaves this device unless you export it. Film data from Wikidata (CC0).</p>
+    <p class="colophon">Visto v1.3 · no account, no tracking. Your diary never leaves this device unless you export it. Film data from Wikidata (CC0).</p>
   </div>
 </section>
 
@@ -1360,9 +1416,10 @@ Metropolis|1927
 
   /* ---------- data ---------- */
   let entries = [];
+  let watch = [];
   let storageOK = true;
   let persisted = null;
-  const ui = { filter: 'all', sort: 'recent', q: '', theme: 'system', online: true };
+  const ui = { filter: 'all', sort: 'recent', q: '', theme: 'system', online: true, tab: 'diary', wsort: 'added' };
 
   function sanitize(e) {
     if (!e || typeof e.title !== 'string' || !e.title.trim()) return null;
@@ -1380,13 +1437,29 @@ Metropolis|1927
     };
   }
 
+  function sanitizeW(w) {
+    if (!w || typeof w.title !== 'string' || !w.title.trim()) return null;
+    return {
+      id: w.id ? String(w.id) : uid(),
+      title: w.title.trim().slice(0, 200),
+      year: validYear(w.year),
+      note: typeof w.note === 'string' ? w.note.slice(0, 4000) : '',
+      added: Number(w.added) || Date.now(),
+      updated: Number(w.updated) || Date.now(),
+    };
+  }
+
   function load() {
     try {
       const raw = localStorage.getItem(KEY);
       if (raw == null) return null;
       const d = JSON.parse(raw);
       const arr = Array.isArray(d) ? d : d && d.entries;
-      return Array.isArray(arr) ? arr.map(sanitize).filter(Boolean) : [];
+      const warr = d && Array.isArray(d.watchlist) ? d.watchlist : [];
+      return {
+        entries: Array.isArray(arr) ? arr.map(sanitize).filter(Boolean) : [],
+        watch: warr.map(sanitizeW).filter(Boolean),
+      };
     } catch (err) {
       storageOK = false;
       return null;
@@ -1399,7 +1472,7 @@ Metropolis|1927
     clearTimeout(saveTimer);
     saveTimer = 0;
     try {
-      localStorage.setItem(KEY, JSON.stringify({ app: 'Visto', version: 1, entries }));
+      localStorage.setItem(KEY, JSON.stringify({ app: 'Visto', version: 2, entries, watchlist: watch }));
       storageOK = true;
     } catch (err) {
       storageOK = false;
@@ -1417,9 +1490,11 @@ Metropolis|1927
       if (['recent', 'stars', 'title'].includes(d.sort)) ui.sort = d.sort;
       if (['system', 'light', 'dark'].includes(d.theme)) ui.theme = d.theme;
       if (typeof d.online === 'boolean') ui.online = d.online;
+      if (['diary', 'watch'].includes(d.tab)) ui.tab = d.tab;
+      if (['added', 'title', 'year'].includes(d.wsort)) ui.wsort = d.wsort;
     } catch (err) { /* ignore */ }
   }
-  function saveUI() { try { localStorage.setItem(UI_KEY, JSON.stringify({ filter: ui.filter, sort: ui.sort, theme: ui.theme, online: ui.online })); } catch (err) { /* ignore */ } }
+  function saveUI() { try { localStorage.setItem(UI_KEY, JSON.stringify({ filter: ui.filter, sort: ui.sort, theme: ui.theme, online: ui.online, tab: ui.tab, wsort: ui.wsort })); } catch (err) { /* ignore */ } }
 
   function askPersist() {
     try {
@@ -1428,7 +1503,11 @@ Metropolis|1927
   }
 
   const byId = id => entries.find(e => e.id === id);
+  const byWid = id => watch.find(w => w.id === id);
   const touch = e => { e.updated = Date.now(); save(); };
+  // Same film: same title, and the same year when both have one.
+  const sameFilm = (a, b) => norm(a.title) === norm(b.title) && (!a.year || !b.year || a.year === b.year);
+  const fmtAdded = ms => { const d = new Date(ms); return `${d.getDate()} ${MON[d.getMonth()]}${d.getFullYear() !== new Date().getFullYear() ? ' ' + d.getFullYear() : ''}`; };
 
   /* ---------- views ---------- */
   const diary = $('#diary');
@@ -1527,15 +1606,109 @@ Metropolis|1927
       '<button class="btn ghost" type="button" data-act="new">Log a film</button></div></div>';
   }
 
+  function watchRowHTML(w) {
+    const meta = [];
+    if (w.year) meta.push(`<span>${w.year}</span>`);
+    meta.push(`<span>Added ${fmtAdded(w.added)}</span>`);
+    return `<li class="ticket wl" data-wid="${esc(w.id)}">` +
+      '<button class="del" type="button" tabindex="-1">Delete</button>' +
+      '<div class="tk"><div class="tk-body">' +
+      `<button class="tk-title" type="button">${esc(w.title)}</button>` +
+      `<span class="tk-info">${meta.join('')}</span>` +
+      (w.note ? `<span class="wl-note">${esc(w.note)}</span>` : '') +
+      '</div>' +
+      `<button class="seen" type="button" aria-label="I've seen ${esc(w.title)}"><svg aria-hidden="true"><use href="#i-check"/></svg>Seen it</button>` +
+      '</div></li>';
+  }
+
+  function watchMatches(w) {
+    const q = norm(ui.q);
+    return !q || norm(w.title).includes(q) || norm(w.note).includes(q);
+  }
+  function watchSorter() {
+    if (ui.wsort === 'title') return (a, b) => collator.compare(a.title, b.title) || b.added - a.added;
+    if (ui.wsort === 'year') return (a, b) => (b.year || 0) - (a.year || 0) || collator.compare(a.title, b.title);
+    return (a, b) => b.added - a.added;
+  }
+  function watchGroupOf(w) {
+    if (ui.wsort === 'title') {
+      const c = norm(w.title).charAt(0);
+      return /[a-z]/.test(c) ? { k: c, label: c.toUpperCase() } : { k: '#', label: '0–9' };
+    }
+    if (ui.wsort === 'year') {
+      if (!w.year) return { k: 'none', label: 'Year unknown' };
+      const dec = Math.floor(w.year / 10) * 10;
+      return { k: 'd' + dec, label: dec + 's' };
+    }
+    return { k: 'all', label: 'Newest first' };
+  }
+  function watchEmptyHTML() {
+    return '<div class="empty">' +
+      '<div class="admit coming" aria-hidden="true">Coming soon</div>' +
+      '<h2>Nothing on your watchlist</h2>' +
+      "<p>Save the films you want to see. When you've watched one, tap Seen it and it moves to your diary.</p>" +
+      '<div class="btns"><button class="btn" type="button" data-act="wnew">Add a film</button>' +
+      '<button class="btn ghost" type="button" data-act="wpick">Pick from the list</button></div></div>';
+  }
+  function renderWatch() {
+    if (!watch.length) { diary.innerHTML = watchEmptyHTML(); return; }
+    const list = watch.filter(watchMatches).sort(watchSorter());
+    if (!list.length) {
+      diary.innerHTML = '<div class="empty"><h2>Nothing here</h2>' +
+        `<p>No film on your watchlist matches “${esc(ui.q)}”.</p>` +
+        '<div class="btns"><button class="btn ghost" type="button" data-act="reset">Show everything</button></div></div>';
+      return;
+    }
+    let html = '';
+    let cur = null;
+    let items = [];
+    const flush = () => {
+      if (!cur) return;
+      html += `<section class="group"><h2 class="group-h"><span>${esc(cur.label)}</span><span>${items.length} film${items.length === 1 ? '' : 's'}</span></h2><ul class="tickets">${items.join('')}</ul></section>`;
+    };
+    for (const w of list) {
+      const g = watchGroupOf(w);
+      if (!cur || g.k !== cur.k) { flush(); cur = g; items = []; }
+      items.push(watchRowHTML(w));
+    }
+    flush();
+    diary.innerHTML = html;
+  }
+
+  const SORTS = {
+    diary: [['recent', 'Recent'], ['stars', 'Stars'], ['title', 'A–Z']],
+    watch: [['added', 'Added'], ['title', 'A–Z'], ['year', 'Year']],
+  };
+  let sortTab = '';
+  function renderChrome() {
+    const isW = ui.tab === 'watch';
+    for (const t of $$('#tabbar .tab')) t.setAttribute('aria-pressed', String(t.dataset.tab === ui.tab));
+    $('#tabbar [data-tn="diary"]').textContent = entries.length;
+    $('#tabbar [data-tn="watch"]').textContent = watch.length;
+    $('#chips').hidden = isW;
+    if (sortTab !== ui.tab) {
+      sortTab = ui.tab;
+      $('#sort').innerHTML = SORTS[ui.tab].map(([v, l]) => `<option value="${v}">${l}</option>`).join('');
+      $('#q').placeholder = isW ? 'Search your watchlist' : 'Search your diary';
+      $('#add').setAttribute('aria-label', isW ? 'Add to your watchlist' : 'Log a film');
+    }
+    $('#sort').value = isW ? ui.wsort : ui.sort;
+    renderTally();
+  }
+
   function renderTally() {
     const n = entries.length;
     const rated = entries.filter(e => e.rating);
     const avg = rated.length ? rated.reduce((s, e) => s + e.rating, 0) / rated.length : 0;
     const yr = new Date().getFullYear();
     const thisYear = entries.filter(e => e.date && e.date.startsWith(yr + '-')).length;
-    $('#tally').innerHTML = n
-      ? `<span><b>${n}</b> film${n === 1 ? '' : 's'}</span><span><b>${thisYear}</b> in ${yr}</span>` + (rated.length ? `<span>avg <b>${avg.toFixed(1)}</b> ★</span>` : '')
-      : '<span>Your film diary</span>';
+    if (ui.tab === 'watch') {
+      $('#tally').innerHTML = `<span><b>${watch.length}</b> to watch</span><span><b>${n}</b> seen</span>`;
+    } else {
+      $('#tally').innerHTML = n
+        ? `<span><b>${n}</b> film${n === 1 ? '' : 's'}</span><span><b>${thisYear}</b> in ${yr}</span>` + (rated.length ? `<span>avg <b>${avg.toFixed(1)}</b> ★</span>` : '')
+        : '<span>Your film diary</span>';
+    }
     const counts = {
       all: n,
       cinema: entries.filter(e => e.venue === 'cinema').length,
@@ -1544,12 +1717,12 @@ Metropolis|1927
     };
     for (const el of $$('#chips .n')) el.textContent = counts[el.dataset.n];
     for (const el of $$('#chips .chip')) el.setAttribute('aria-pressed', String(el.dataset.f === ui.filter));
-    $('#sort').value = ui.sort;
   }
 
   function render() {
     clearTimeout(renderTimer);
-    renderTally();
+    renderChrome();
+    if (ui.tab === 'watch') return renderWatch();
     if (!entries.length) { diary.innerHTML = emptyHTML(); return; }
     const list = entries.filter(matches).sort(sorter());
     if (!list.length) {
@@ -1579,7 +1752,7 @@ Metropolis|1927
   let renderTimer = 0;
   function renderSoon(ms = 150) { clearTimeout(renderTimer); renderTimer = setTimeout(render, ms); }
 
-  const liOf = id => diary.querySelector(`.ticket[data-id="${cssId(id)}"]`);
+  const liOf = (id, w) => diary.querySelector(`.ticket[data-${w ? 'wid' : 'id'}="${cssId(id)}"]`);
 
   function refreshTicket(e, opts = {}) {
     const old = liOf(e.id);
@@ -1590,7 +1763,7 @@ Metropolis|1927
     old.replaceWith(li);
     if (opts.pop) { const s = li.querySelector(`.star[data-star="${opts.pop}"]`); if (s) s.classList.add('pop'); }
     if (opts.flip) li.querySelector('.stub').classList.add('flip');
-    renderTally();
+    renderChrome();
   }
 
   // A change that may move or hide the row: let the user see it land, then re-sort.
@@ -1599,9 +1772,9 @@ Metropolis|1927
     if (hidden || ui.sort === 'stars') renderSoon(hidden ? 900 : 700);
   }
 
-  function flash(id) {
+  function flash(id, w) {
     requestAnimationFrame(() => {
-      const li = liOf(id);
+      const li = liOf(id, w);
       if (!li) return;
       li.scrollIntoView({ block: 'center', behavior: reduced ? 'auto' : 'smooth' });
       li.classList.add('flash');
@@ -1611,6 +1784,14 @@ Metropolis|1927
 
   function showAll() {
     ui.filter = 'all'; ui.q = ''; $('#q').value = ''; $('#qClear').hidden = true; saveUI();
+  }
+  function setTab(t) {
+    if (ui.tab === t) { window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' }); return; }
+    ui.tab = t;
+    ui.q = ''; $('#q').value = ''; $('#qClear').hidden = true;
+    saveUI();
+    render();
+    window.scrollTo({ top: 0 });
   }
 
   /* ---------- toast ---------- */
@@ -1626,6 +1807,19 @@ Metropolis|1927
     $('#toast').classList.add('on');
     clearTimeout(toastTimer);
     toastTimer = setTimeout(hideToast, actLabel ? 5500 : 2800);
+  }
+
+  function removeWatch(w) {
+    if (!w) return;
+    const idx = watch.indexOf(w);
+    if (idx < 0) return;
+    watch.splice(idx, 1);
+    saveNow();
+    render();
+    toast(`Removed “${w.title}” from your watchlist`, 'Undo', () => {
+      watch.splice(Math.min(idx, watch.length), 0, w);
+      saveNow(); render(); flash(w.id, true);
+    });
   }
 
   function removeEntry(e) {
@@ -1648,12 +1842,23 @@ Metropolis|1927
     const act = ev.target.closest('[data-act]');
     if (act) {
       const a = act.dataset.act;
-      if (a === 'pick') return openPicker();
+      if (a === 'pick') return openPicker('diary');
       if (a === 'new') return openEditor(null, true);
+      if (a === 'wpick') return openPicker('watch');
+      if (a === 'wnew') return openWatchEditor(null, true);
       if (a === 'reset') { showAll(); return render(); }
     }
     const li = ev.target.closest('.ticket');
     if (!li) return;
+    if (li.dataset.wid) {
+      const w = byWid(li.dataset.wid);
+      if (!w) return;
+      if (ev.target.closest('.del')) return removeWatch(w);
+      if (li.classList.contains('open')) return closeSwipe(li);
+      if (ev.target.closest('.seen')) return openLogFromWatch(w);
+      if (ev.target.closest('.tk-body')) openWatchEditor(w.id);
+      return;
+    }
     const e = byId(li.dataset.id);
     if (!e) return;
     if (ev.target.closest('.del')) return removeEntry(e);
@@ -1718,7 +1923,7 @@ Metropolis|1927
     const w = s.tk.offsetWidth;
     if (!cancelled && s.x < -w * 0.55) {
       s.tk.style.transform = `translateX(${-w - 24}px)`;
-      setTimeout(() => removeEntry(byId(s.li.dataset.id)), 200);
+      setTimeout(() => (s.li.dataset.wid ? removeWatch(byWid(s.li.dataset.wid)) : removeEntry(byId(s.li.dataset.id))), 200);
     } else if (!cancelled && s.x < OPEN_X / 2) {
       s.li.classList.add('open');
       s.tk.style.transform = `translateX(${OPEN_X}px)`;
@@ -1735,7 +1940,14 @@ Metropolis|1927
     ui.filter = c.dataset.f; saveUI(); render();
     window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' });
   });
-  $('#sort').addEventListener('change', ev => { ui.sort = ev.target.value; saveUI(); render(); });
+  $('#sort').addEventListener('change', ev => {
+    if (ui.tab === 'watch') ui.wsort = ev.target.value; else ui.sort = ev.target.value;
+    saveUI(); render();
+  });
+  $('#tabbar').addEventListener('click', ev => {
+    const t = ev.target.closest('.tab');
+    if (t) setTab(t.dataset.tab);
+  });
   $('#q').addEventListener('input', ev => { ui.q = ev.target.value; $('#qClear').hidden = !ui.q; renderSoon(80); });
   $('#q').addEventListener('keydown', ev => { if (ev.key === 'Enter') ev.target.blur(); });
   $('#qClear').addEventListener('click', ev => { ev.preventDefault(); ui.q = ''; $('#q').value = ''; $('#qClear').hidden = true; render(); });
@@ -1867,23 +2079,51 @@ Metropolis|1927
   const fDate = $('#fDate');
   const fNote = $('#fNote');
   const sug = $('#suggest');
-  const ed = { entry: null, isNew: false, draft: null, origTitle: '' };
+  const ed = { kind: 'diary', entry: null, isNew: false, draft: null, origTitle: '', fromWatch: null };
   const catalog = FILMS.map(f => ({ t: f.t, y: f.y, n: norm(f.t) }));
 
-  function openEditor(id, focusTitle) {
+  function openEditor(id, focusTitle, prefill) {
     const e = id ? byId(id) : null;
+    ed.kind = 'diary';
+    ed.fromWatch = null;
     ed.isNew = !e;
     ed.entry = e;
-    ed.draft = e || { title: '', year: null, date: todayISO(), venue: null, rating: 0, note: '' };
+    ed.draft = e || { title: '', year: null, date: todayISO(), venue: null, rating: 0, note: '', ...(prefill || {}) };
     ed.origTitle = e ? e.title : '';
-    $('#edHeading').textContent = e ? 'Edit film' : 'New film';
-    $('#edDone').textContent = e ? 'Done' : 'Add';
-    $('#edCancel').style.visibility = e ? 'hidden' : '';
-    $('#edDelete').hidden = !e;
+    showEditor(e ? 'Edit film' : prefill ? 'Log film' : 'New film', e ? 'Done' : 'Add', !!e, false, focusTitle);
+  }
+
+  function openWatchEditor(id, focusTitle) {
+    const w = id ? byWid(id) : null;
+    ed.kind = 'watch';
+    ed.fromWatch = null;
+    ed.isNew = !w;
+    ed.entry = w;
+    ed.draft = w || { title: '', year: null, note: '' };
+    ed.origTitle = w ? w.title : '';
+    showEditor(w ? 'Watchlist' : 'Want to see', w ? 'Done' : 'Add', !!w, !!w, focusTitle);
+  }
+
+  // "Seen it": log the film in the diary; saving takes it off the watchlist.
+  function openLogFromWatch(w) {
+    openEditor(null, false, { title: w.title, year: w.year, note: w.note });
+    ed.fromWatch = w.id;
+  }
+
+  function showEditor(heading, doneLabel, existing, canMarkSeen, focusTitle) {
+    edEl.classList.toggle('is-watch', ed.kind === 'watch');
+    $('#edHeading').textContent = heading;
+    $('#edDone').textContent = doneLabel;
+    $('#edCancel').style.visibility = existing ? 'hidden' : '';
+    $('#edDelete').hidden = !existing;
+    $('#edDelete').textContent = ed.kind === 'watch' ? 'Remove from watchlist' : 'Delete this entry';
+    $('#edSeen').hidden = !canMarkSeen;
+    $('#edWhenLabel').textContent = ed.kind === 'watch' ? 'Year' : 'When';
+    $('#fNote').placeholder = ed.kind === 'watch' ? 'Why you want to see it, who recommended it…' : 'Who you went with, a line you loved…';
     fTitle.value = ed.draft.title;
     fYear.value = ed.draft.year || '';
     fDate.value = ed.draft.date || '';
-    fNote.value = ed.draft.note;
+    fNote.value = ed.draft.note || '';
     hideSuggest();
     $('#edBody').scrollTop = 0;
     openSheet(edEl);
@@ -1895,6 +2135,7 @@ Metropolis|1927
     const d = ed.draft;
     $('#edDone').disabled = ed.isNew && !d.title.trim();
     $('#fTitleClear').hidden = !fTitle.value;
+    if (ed.kind === 'watch') return;
     for (const b of $$('#venuePick button')) b.setAttribute('aria-pressed', String(b.dataset.v === d.venue));
     $('#venueVal').textContent = d.venue === 'cinema' ? 'At the cinema · tap again to clear' : d.venue === 'home' ? 'At home · tap again to clear' : 'Not set';
     $('#starsVal').textContent = d.rating ? `${fmtStars(d.rating)} / 5 · tap again to clear` : 'Left half of a star = ½';
@@ -2005,23 +2246,58 @@ Metropolis|1927
     const d = ed.draft;
     if (!d.title.trim()) return;
     const now = Date.now();
-    const e = sanitize({ ...d, id: uid(), created: now, updated: now });
-    entries.push(e);
-    saveNow();
-    askPersist();
     hideSuggest();
     fTitle.blur();
+    if (ed.kind === 'watch') {
+      const w = sanitizeW({ ...d, id: uid(), added: now, updated: now });
+      const dup = watch.find(x => sameFilm(x, w));
+      closeSheet(edEl);
+      if (ui.tab !== 'watch') { ui.tab = 'watch'; saveUI(); }
+      if (dup) { showAll(); render(); flash(dup.id, true); toast(`“${dup.title}” is already on your watchlist`); return; }
+      watch.push(w);
+      saveNow();
+      askPersist();
+      if (!watchMatches(w)) showAll();
+      render();
+      flash(w.id, true);
+      toast(`Added “${w.title}” to your watchlist`);
+      return;
+    }
+    const e = sanitize({ ...d, id: uid(), created: now, updated: now });
+    entries.push(e);
+    const from = ed.fromWatch && byWid(ed.fromWatch);
+    const removed = watch.filter(w => w === from || sameFilm(w, e));
+    if (removed.length) watch = watch.filter(w => !removed.includes(w));
+    saveNow();
+    askPersist();
     closeSheet(edEl);
-    if (!matches(e)) showAll();
-    render();
-    flash(e.id);
-    toast(`Logged “${e.title}”`);
+    if (ui.tab === 'diary') {
+      if (!matches(e)) showAll();
+      render();
+      flash(e.id);
+    } else render();
+    if (removed.length) {
+      toast(`Logged “${e.title}” and took it off your watchlist`, 'Undo', () => {
+        entries = entries.filter(x => x !== e);
+        watch.push(...removed);
+        saveNow(); render();
+      });
+    } else toast(`Logged “${e.title}”`);
   });
   $('#edDelete').addEventListener('click', () => {
     const e = ed.entry;
+    const kind = ed.kind;
     hideSuggest();
     closeSheet(edEl);
-    removeEntry(e);
+    if (kind === 'watch') removeWatch(e); else removeEntry(e);
+  });
+  $('#edSeen').addEventListener('click', () => {
+    const w = ed.entry;
+    if (!w) return;
+    w.title = w.title.trim() || ed.origTitle;
+    saveNow();
+    hideSuggest();
+    openLogFromWatch(w);
   });
 
   let sugItems = [];
@@ -2149,6 +2425,7 @@ Metropolis|1927
   let pkQuery = '';
   let pkButtons = [];
   let pkSections = [];
+  let pkMode = 'diary';
 
   function buildPicker() {
     const order = FILMS.map((f, i) => ({ ...f, i })).sort((a, b) => b.y - a.y || collator.compare(a.t, b.t));
@@ -2173,7 +2450,8 @@ Metropolis|1927
     const n = pkSel.size + pkOnlineSel.size;
     const b = $('#pkAdd');
     b.disabled = !n;
-    b.textContent = n ? `Add ${n} film${n === 1 ? '' : 's'} to your diary` : "Tick the films you've seen";
+    const where = pkMode === 'watch' ? 'watchlist' : 'diary';
+    b.textContent = n ? `Add ${n} film${n === 1 ? '' : 's'} to your ${where}` : pkMode === 'watch' ? 'Tick the films you want to see' : "Tick the films you've seen";
   }
 
   function filterPicker(q) {
@@ -2183,9 +2461,11 @@ Metropolis|1927
   }
 
 
+  // Films the picker greys out: already in the diary (and, when filling the watchlist, already on it).
   function diaryKeys() {
     const s = new Set();
-    for (const e of entries) { s.add(norm(e.title) + '|' + (e.year || '')); s.add(norm(e.title) + '|'); }
+    const pool = pkMode === 'watch' ? [...entries, ...watch] : entries;
+    for (const e of pool) { s.add(norm(e.title) + '|' + (e.year || '')); s.add(norm(e.title) + '|'); }
     return s;
   }
   function stopPickerOnline() {
@@ -2247,15 +2527,15 @@ Metropolis|1927
     status.hidden = !msg;
   }
 
-  function openPicker() {
+  function openPicker(mode) {
+    pkMode = mode === 'watch' ? 'watch' : 'diary';
     if (!pkButtons.length) buildPicker();
     pkSel.clear();
-    const have = new Set(entries.map(e => norm(e.title) + '|' + (e.year || '')));
-    const haveTitle = new Set(entries.filter(e => !e.year).map(e => norm(e.title)));
+    const have = diaryKeys();
     let already = 0;
     for (const p of pkButtons) {
       const f = FILMS[+p.b.dataset.i];
-      const h = have.has(p.n + '|' + f.y) || haveTitle.has(p.n);
+      const h = have.has(p.n + '|' + f.y) || have.has(p.n + '|');
       if (h) already++;
       p.b.classList.toggle('have', h);
       p.b.disabled = h;
@@ -2264,8 +2544,10 @@ Metropolis|1927
     pkOnlineSel.clear();
     $('#pq').value = '';
     pickerSearch('');
-    $('#pkHint').textContent = `${FILMS.length} films below, newest first${already ? ` · ${already} already in your diary` : ''}. ` +
-      (onlineOn() ? 'Search also checks Wikidata, so you can find any film. ' : '') + 'Ticked films arrive unrated and undated.';
+    const isW = pkMode === 'watch';
+    $('#pkHeading').textContent = isW ? 'Want to see?' : 'Seen it?';
+    $('#pkHint').textContent = `${FILMS.length} films below, newest first${already ? ` · ${already} greyed out, already ${isW ? 'seen or saved' : 'in your diary'}` : ''}. ` +
+      (onlineOn() ? 'Search also checks Wikidata, so you can find any film. ' : '') + (isW ? '' : 'Ticked films arrive unrated and undated.');
     paintPickCount();
     pkList.scrollTop = 0;
     if (stack.includes(setEl)) closeSheet(setEl);
@@ -2297,18 +2579,36 @@ Metropolis|1927
     if (!n) return;
     const now = Date.now();
     const picked = [...[...pkSel].map(i => FILMS[i]), ...pkOnlineSel.values()];
-    for (const f of picked) {
-      entries.push(sanitize({ id: uid(), title: f.t, year: f.y, date: null, venue: null, rating: 0, note: '', created: now, updated: now }));
-    }
     pkSel.clear();
     pkOnlineSel.clear();
+    if (pkMode === 'watch') {
+      for (const f of picked) {
+        const w = sanitizeW({ id: uid(), title: f.t, year: f.y, note: '', added: now, updated: now });
+        if (w && !watch.some(x => sameFilm(x, w))) watch.push(w);
+      }
+      saveNow();
+      askPersist();
+      closers.picker();
+      ui.tab = 'watch';
+      showAll();
+      render();
+      window.scrollTo({ top: 0 });
+      toast(`Added ${n} film${n === 1 ? '' : 's'} to your watchlist`);
+      return;
+    }
+    const added = picked.map(f => sanitize({ id: uid(), title: f.t, year: f.y, date: null, venue: null, rating: 0, note: '', created: now, updated: now }));
+    entries.push(...added);
+    const before = watch.length;
+    watch = watch.filter(w => !added.some(e => sameFilm(w, e)));
+    const off = before - watch.length;
     saveNow();
     askPersist();
     closers.picker();
+    ui.tab = 'diary';
     showAll();
     render();
     window.scrollTo({ top: 0 });
-    toast(`Added ${n} film${n === 1 ? '' : 's'}. Tap a stub for cinema or home, a star to rate.`);
+    toast(`Added ${n} film${n === 1 ? '' : 's'}${off ? ` (${off} taken off your watchlist)` : ''}. Tap a stub for cinema or home, a star to rate.`);
   });
 
   /* ---------- settings ---------- */
@@ -2318,11 +2618,11 @@ Metropolis|1927
     clearTimeout(eraseArmed); eraseArmed = 0;
     $('#sErase').classList.remove('armed');
     $('#sEraseT').textContent = 'Erase everything';
-    $('#sEraseS').textContent = 'Deletes every entry on this device';
+    $('#sEraseS').textContent = 'Deletes your diary and watchlist on this device';
   }
   async function paintStorage() {
     const n = entries.length;
-    $('#sStore').textContent = storageOK ? `Saved on this device · ${n} entr${n === 1 ? 'y' : 'ies'}` : 'This browser is blocking storage';
+    $('#sStore').textContent = storageOK ? `Saved on this device · ${n} in diary, ${watch.length} on watchlist` : 'This browser is blocking storage';
     try { if (navigator.storage && navigator.storage.persisted) persisted = await navigator.storage.persisted(); } catch (err) { /* ignore */ }
     $('#sStoreSub').textContent = persisted ? 'Protected from automatic clean-up. Export a backup now and then anyway.' : 'Export a backup now and then; it is your only copy.';
   }
@@ -2341,11 +2641,12 @@ Metropolis|1927
   $('#openSettings').addEventListener('click', openSettings);
   $('#sOnline').addEventListener('change', ev => { ui.online = ev.target.checked; saveUI(); });
   $('#stDone').addEventListener('click', closers.settings);
-  $('#sPick').addEventListener('click', openPicker);
+  $('#sPick').addEventListener('click', () => openPicker('diary'));
+  $('#sWatchPick').addEventListener('click', () => openPicker('watch'));
 
   async function exportBackup() {
     if (BUILD === 'preview') return toast('Export works once Visto is installed on your iPhone');
-    const json = JSON.stringify({ app: 'Visto', version: 1, exported: new Date().toISOString(), entries }, null, 2);
+    const json = JSON.stringify({ app: 'Visto', version: 2, exported: new Date().toISOString(), entries, watchlist: watch }, null, 2);
     const name = `visto-backup-${todayISO()}.json`;
     let file = null;
     try { file = new File([json], name, { type: 'application/json' }); } catch (err) { /* ignore */ }
@@ -2372,41 +2673,55 @@ Metropolis|1927
       try {
         const d = JSON.parse(r.result);
         const arr = Array.isArray(d) ? d : d && d.entries;
-        if (!Array.isArray(arr)) throw new Error('no entries');
+        const warr = d && Array.isArray(d.watchlist) ? d.watchlist : null;
+        if (!Array.isArray(arr) && !warr) throw new Error('no entries');
+        let added = 0, updated = 0, wadded = 0;
         const map = new Map(entries.map(e => [e.id, e]));
-        let added = 0, updated = 0;
-        for (const raw of arr) {
+        for (const raw of arr || []) {
           const s = sanitize(raw);
           if (!s) continue;
           const cur = map.get(s.id);
           if (!cur) { entries.push(s); map.set(s.id, s); added++; }
           else if (s.updated > cur.updated) { Object.assign(cur, s); updated++; }
         }
+        const wmap = new Map(watch.map(w => [w.id, w]));
+        for (const raw of warr || []) {
+          const s = sanitizeW(raw);
+          if (!s) continue;
+          const cur = wmap.get(s.id);
+          if (!cur) { if (!watch.some(x => sameFilm(x, s))) { watch.push(s); wmap.set(s.id, s); wadded++; } }
+          else if (s.updated > cur.updated) { Object.assign(cur, s); updated++; }
+        }
         saveNow();
         render();
         paintStorage();
-        toast(`Imported ${added} new${updated ? `, updated ${updated}` : ''}`);
+        const parts = [];
+        if (added || !wadded) parts.push(`${added} diary entr${added === 1 ? 'y' : 'ies'}`);
+        if (wadded) parts.push(`${wadded} watchlist film${wadded === 1 ? '' : 's'}`);
+        toast(`Imported ${parts.join(' and ')}${updated ? `, updated ${updated}` : ''}`);
       } catch (err) { toast("That file isn't a Visto backup"); }
     };
     r.onerror = () => toast("Couldn't read that file");
     r.readAsText(f);
   });
   $('#sErase').addEventListener('click', () => {
-    if (!entries.length) return toast('Your diary is already empty');
+    if (!entries.length && !watch.length) return toast('Your diary and watchlist are already empty');
     if (!eraseArmed) {
       $('#sErase').classList.add('armed');
-      $('#sEraseT').textContent = `Tap again to erase ${entries.length} entr${entries.length === 1 ? 'y' : 'ies'}`;
+      $('#sEraseT').textContent = 'Tap again to erase everything';
       $('#sEraseS').textContent = 'You can undo for a few seconds';
       eraseArmed = setTimeout(disarmErase, 4000);
       return;
     }
     disarmErase();
     const backup = entries.slice();
+    const wbackup = watch.slice();
     entries = [];
+    watch = [];
     saveNow();
     render();
     closers.settings();
-    toast('Erased everything', 'Undo', () => { entries = backup; saveNow(); render(); });
+    toast('Erased everything', 'Undo', () => { entries = backup; watch = wbackup; saveNow(); render(); });
   });
 
   /* ---------- appearance ---------- */
@@ -2426,7 +2741,7 @@ Metropolis|1927
   });
 
   /* ---------- start ---------- */
-  $('#add').addEventListener('click', () => openEditor(null, true));
+  $('#add').addEventListener('click', () => (ui.tab === 'watch' ? openWatchEditor(null, true) : openEditor(null, true)));
 
   function banner() {
     const standalone = navigator.standalone === true || (window.matchMedia && matchMedia('(display-mode: standalone)').matches);
@@ -2453,12 +2768,20 @@ Metropolis|1927
     ];
     return ex.map((e, i) => sanitize({ ...e, id: uid(), created: now - i, updated: now - i }));
   }
+  function watchExamples() {
+    const now = Date.now();
+    return [
+      { title: 'Hamnet', year: 2025, note: 'Out in Italian cinemas soon' },
+      { title: 'Vermiglio', year: 2024 },
+      { title: 'Marty Supreme', year: 2025 },
+    ].map((w, i) => sanitizeW({ ...w, id: uid(), added: now - i * 86400000 * 3, updated: now }));
+  }
 
   loadUI();
   applyTheme();
   const stored = load();
-  if (stored) entries = stored;
-  else if (BUILD === 'preview' && storageOK) { entries = examples(); saveNow(); }
+  if (stored) { entries = stored.entries; watch = stored.watch; }
+  else if (BUILD === 'preview' && storageOK) { entries = examples(); watch = watchExamples(); saveNow(); }
   banner();
   render();
 
@@ -2467,7 +2790,7 @@ Metropolis|1927
   }
 
   // Test hook (harmless in production): lets automated checks read state.
-  window.__visto = { get entries() { return entries; }, render };
+  window.__visto = { get entries() { return entries; }, get watch() { return watch; }, render };
 })();
 
 </script>
