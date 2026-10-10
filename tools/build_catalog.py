@@ -29,6 +29,9 @@ MAX_FILMS = 80000       # keep the most widely covered films if there are more
 MIN_EXPECTED = 20000    # fewer than this means something broke: keep the previous catalog
 ITALIAN_LANG = "http://www.wikidata.org/entity/Q652"
 ITALY = "http://www.wikidata.org/entity/Q38"
+ENGLISH_LANG = "http://www.wikidata.org/entity/Q1860"
+US = "http://www.wikidata.org/entity/Q30"
+UK = "http://www.wikidata.org/entity/Q145"
 
 QUERY = """PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -96,6 +99,19 @@ def open_post(url, data, timeout, hops=5):
     raise RuntimeError("too many redirects")
 
 
+def is_italian(langs, countries):
+    """Italian title for films in Italian (not English), or in both languages but made in Italy
+    without the US or UK. The Godfather lists Italy and Italian too, but is American."""
+    has_it = ITALIAN_LANG in langs
+    has_en = ENGLISH_LANG in langs
+    anglo = US in countries or UK in countries
+    if has_it and not has_en:
+        return True
+    if ITALY in countries and not anglo:
+        return has_it or not langs
+    return False
+
+
 def run_query(sparql, timeout=120):
     """POST the query and stream the answer, printing progress so a stall shows up in the log."""
     data = urllib.parse.urlencode({"query": sparql}).encode()
@@ -147,8 +163,7 @@ def main(out_path, report_path):
             continue
         langs = (val(b, "langs") or "").split()
         countries = (val(b, "countries") or "").split()
-        # Italian film = made in Italy and in Italian (The Godfather has Italian dialogue but is American)
-        italian = ITALY in countries and (ITALIAN_LANG in langs or not langs)
+        italian = is_italian(langs, countries)
         it, en = val(b, "it"), val(b, "en")
         if not en and val(b, "enw"):
             en = wiki_title(val(b, "enw")); fixed_en += 1
