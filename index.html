@@ -726,7 +726,7 @@ label.item { cursor: pointer; }
     <div class="list-card">
       <button class="item danger" id="sErase" type="button"><svg><use href="#i-trash"/></svg><span><span class="t" id="sEraseT">Erase everything</span><span class="s" id="sEraseS">Deletes every entry on this device</span></span></button>
     </div>
-    <p class="colophon">Visto v1.3 · no account, no tracking. Your diary never leaves this device unless you export it. Film data from Wikidata (CC0).</p>
+    <p class="colophon">Visto v1.4 · no account, no tracking. Your diary never leaves this device unless you export it. Film data from Wikidata (CC0).</p>
   </div>
 </section>
 
@@ -734,7 +734,7 @@ label.item { cursor: pointer; }
 
 <script>window.VISTO_BUILD='app';</script>
 <script>
-// Bundled catalog: "Title|Year". English titles for English-language films, Italian titles otherwise.
+// Bundled catalog: "Title|Year". Italian titles for Italian films, English titles for everything else.
 window.FILMS = `
 Project Hail Mary|2026
 Michael|2026
@@ -793,12 +793,12 @@ Furiosa: A Mad Max Saga|2024
 Kinds of Kindness|2024
 Longlegs|2024
 The Wild Robot|2024
-Flow – Un mondo da salvare|2024
+Flow|2024
 Emilia Pérez|2024
 Parthenope|2024
 Vermiglio|2024
-Io sono ancora qui|2024
-Il seme del fico sacro|2024
+I'm Still Here|2024
+The Seed of the Sacred Fig|2024
 Queer|2024
 Maria|2024
 Juror #2|2024
@@ -815,8 +815,8 @@ Barbie|2023
 Killers of the Flower Moon|2023
 Poor Things|2023
 Past Lives|2023
-La zona d'interesse|2023
-Anatomia di una caduta|2023
+The Zone of Interest|2023
+Anatomy of a Fall|2023
 The Holdovers|2023
 Saltburn|2023
 Asteroid City|2023
@@ -826,8 +826,8 @@ May December|2023
 Io capitano|2023
 C'è ancora domani|2023
 Perfect Days|2023
-Il ragazzo e l'airone|2023
-Foglie al vento|2023
+The Boy and the Heron|2023
+Fallen Leaves|2023
 American Fiction|2023
 The Iron Claw|2023
 John Wick: Chapter 4|2023
@@ -848,7 +848,7 @@ Tár|2022
 The Fabelmans|2022
 Aftersun|2022
 Triangle of Sadness|2022
-Niente di nuovo sul fronte occidentale|2022
+All Quiet on the Western Front|2022
 The Batman|2022
 Avatar: The Way of Water|2022
 Glass Onion: A Knives Out Mystery|2022
@@ -879,7 +879,7 @@ The French Dispatch|2021
 Encanto|2021
 Belfast|2021
 CODA|2021
-La persona peggiore del mondo|2021
+The Worst Person in the World|2021
 The Green Knight|2021
 Titane|2021
 Last Night in Soho|2021
@@ -892,7 +892,7 @@ Tenet|2020
 Promising Young Woman|2020
 The Father|2020
 Minari|2020
-Un altro giro|2020
+Another Round|2020
 The Trial of the Chicago 7|2020
 Palm Springs|2020
 Mank|2020
@@ -913,8 +913,8 @@ Ford v Ferrari|2019
 Uncut Gems|2019
 Midsommar|2019
 Avengers: Endgame|2019
-Ritratto della giovane in fiamme|2019
-Dolor y gloria|2019
+Portrait of a Lady on Fire|2019
+Pain and Glory|2019
 Il traditore|2019
 The Lighthouse|2019
 Martin Eden|2019
@@ -937,8 +937,8 @@ Avengers: Infinity War|2018
 Hereditary|2018
 A Quiet Place|2018
 Cold War|2018
-Un affare di famiglia|2018
-Burning – L'amore brucia|2018
+Shoplifters|2018
+Burning|2018
 First Man|2018
 Mission: Impossible – Fallout|2018
 Dogman|2018
@@ -969,7 +969,7 @@ Manchester by the Sea|2016
 Hell or High Water|2016
 Nocturnal Animals|2016
 Your Name.|2016
-Mademoiselle|2016
+The Handmaiden|2016
 Zootopia|2016
 Moana|2016
 Paterson|2016
@@ -1024,7 +1024,7 @@ Prisoners|2013
 Rush|2013
 The Conjuring|2013
 La grande bellezza|2013
-La vita di Adele|2013
+Blue Is the Warmest Colour|2013
 Django Unchained|2012
 Argo|2012
 Life of Pi|2012
@@ -1042,8 +1042,8 @@ Melancholia|2011
 Midnight in Paris|2011
 The Tree of Life|2011
 Harry Potter and the Deathly Hallows – Part 2|2011
-Quasi amici|2011
-Una separazione|2011
+The Intouchables|2011
+A Separation|2011
 Habemus Papam|2011
 This Must Be the Place|2011
 Inception|2010
@@ -1068,7 +1068,7 @@ Slumdog Millionaire|2008
 Iron Man|2008
 Kung Fu Panda|2008
 Twilight|2008
-Lasciami entrare|2008
+Let the Right One In|2008
 Gomorra|2008
 Il divo|2008
 There Will Be Blood|2007
@@ -1085,8 +1085,8 @@ Casino Royale|2006
 Children of Men|2006
 The Prestige|2006
 Little Miss Sunshine|2006
-Le vite degli altri|2006
-Il labirinto del fauno|2006
+The Lives of Others|2006
+Pan's Labyrinth|2006
 Il caimano|2006
 Notte prima degli esami|2006
 Brokeback Mountain|2005
@@ -1105,7 +1105,7 @@ Sideways|2004
 Kill Bill: Vol. 2|2004
 Spider-Man 2|2004
 Harry Potter and the Prisoner of Azkaban|2004
-Il castello errante di Howl|2004
+Howl's Moving Castle|2004
 Le conseguenze dell'amore|2004
 Kill Bill: Vol. 1|2003
 Lost in Translation|2003
@@ -1129,8 +1129,8 @@ Minority Report|2002
 The Lord of the Rings: The Two Towers|2002
 Harry Potter and the Chamber of Secrets|2002
 Lilo & Stitch|2002
-Il favoloso mondo di Amélie|2001
-La città incantata|2001
+Amélie|2001
+Spirited Away|2001
 Mulholland Drive|2001
 Shrek|2001
 Monsters, Inc.|2001
@@ -1147,7 +1147,7 @@ Memento|2000
 Gladiator|2000
 In the Mood for Love|2000
 Requiem for a Dream|2000
-La tigre e il dragone|2000
+Crouching Tiger, Hidden Dragon|2000
 Almost Famous|2000
 Cast Away|2000
 Snatch|2000
@@ -1166,7 +1166,7 @@ Toy Story 2|1999
 The Talented Mr. Ripley|1999
 The Blair Witch Project|1999
 Tarzan|1999
-Tutto su mia madre|1999
+All About My Mother|1999
 Saving Private Ryan|1998
 The Truman Show|1998
 The Big Lebowski|1998
@@ -1181,7 +1181,7 @@ Boogie Nights|1997
 L.A. Confidential|1997
 Men in Black|1997
 Jackie Brown|1997
-Principessa Mononoke|1997
+Princess Mononoke|1997
 La vita è bella|1997
 Tre uomini e una gamba|1997
 Fargo|1996
@@ -1199,14 +1199,14 @@ Before Sunrise|1995
 Casino|1995
 Twelve Monkeys|1995
 Clueless|1995
-L'odio|1995
+La Haine|1995
 Pulp Fiction|1994
 The Shawshank Redemption|1994
 Forrest Gump|1994
 The Lion King|1994
 Léon: The Professional|1994
-Hong Kong Express|1994
-Tre colori – Film rosso|1994
+Chungking Express|1994
+Three Colours: Red|1994
 Il postino|1994
 Il mostro|1994
 Schindler's List|1993
@@ -1234,12 +1234,12 @@ Indiana Jones and the Last Crusade|1989
 Do the Right Thing|1989
 The Little Mermaid|1989
 Back to the Future Part II|1989
-Kiki – Consegne a domicilio|1989
+Kiki's Delivery Service|1989
 Die Hard|1988
 Rain Man|1988
 Who Framed Roger Rabbit|1988
 Akira|1988
-Il mio vicino Totoro|1988
+My Neighbor Totoro|1988
 Nuovo Cinema Paradiso|1988
 Compagni di scuola|1988
 Full Metal Jacket|1987
@@ -1247,7 +1247,7 @@ The Princess Bride|1987
 Dirty Dancing|1987
 RoboCop|1987
 The Last Emperor|1987
-Il cielo sopra Berlino|1987
+Wings of Desire|1987
 Aliens|1986
 Top Gun|1986
 Stand by Me|1986
@@ -1270,7 +1270,7 @@ Scarface|1983
 Blade Runner|1982
 E.T. the Extra-Terrestrial|1982
 The Thing|1982
-Fanny e Alexander|1982
+Fanny and Alexander|1982
 Raiders of the Lost Ark|1981
 Il Marchese del Grillo|1981
 Ricomincio da tre|1981
@@ -1340,24 +1340,24 @@ The Apartment|1960
 La dolce vita|1960
 L'avventura|1960
 Rocco e i suoi fratelli|1960
-Fino all'ultimo respiro|1960
+Breathless|1960
 North by Northwest|1959
 Some Like It Hot|1959
 Ben-Hur|1959
-I quattrocento colpi|1959
+The 400 Blows|1959
 Vertigo|1958
 I soliti ignoti|1958
 12 Angry Men|1957
 The Bridge on the River Kwai|1957
 Le notti di Cabiria|1957
-Il settimo sigillo|1957
+The Seventh Seal|1957
 Rebel Without a Cause|1955
 Rear Window|1954
 On the Waterfront|1954
-I sette samurai|1954
+Seven Samurai|1954
 La strada|1954
 Roman Holiday|1953
-Viaggio a Tokyo|1953
+Tokyo Story|1953
 Singin' in the Rain|1952
 Umberto D.|1952
 Sunset Boulevard|1950
@@ -1417,6 +1417,19 @@ Metropolis|1927
   /* ---------- data ---------- */
   let entries = [];
   let watch = [];
+  let migrations = [];
+  // v1.4: catalog switched to English titles for non-Italian films; rename films ticked under the old names once.
+  const MIGRATION = 'titles-en-1';
+  const RENAMED = {"Flow – Un mondo da salvare|2024": "Flow", "Io sono ancora qui|2024": "I'm Still Here", "Il seme del fico sacro|2024": "The Seed of the Sacred Fig", "La zona d'interesse|2023": "The Zone of Interest", "Anatomia di una caduta|2023": "Anatomy of a Fall", "Il ragazzo e l'airone|2023": "The Boy and the Heron", "Foglie al vento|2023": "Fallen Leaves", "Niente di nuovo sul fronte occidentale|2022": "All Quiet on the Western Front", "La persona peggiore del mondo|2021": "The Worst Person in the World", "Un altro giro|2020": "Another Round", "Ritratto della giovane in fiamme|2019": "Portrait of a Lady on Fire", "Dolor y gloria|2019": "Pain and Glory", "Un affare di famiglia|2018": "Shoplifters", "Burning – L'amore brucia|2018": "Burning", "Mademoiselle|2016": "The Handmaiden", "La vita di Adele|2013": "Blue Is the Warmest Colour", "Quasi amici|2011": "The Intouchables", "Una separazione|2011": "A Separation", "Lasciami entrare|2008": "Let the Right One In", "Le vite degli altri|2006": "The Lives of Others", "Il labirinto del fauno|2006": "Pan's Labyrinth", "Il castello errante di Howl|2004": "Howl's Moving Castle", "Il favoloso mondo di Amélie|2001": "Amélie", "La città incantata|2001": "Spirited Away", "La tigre e il dragone|2000": "Crouching Tiger, Hidden Dragon", "Tutto su mia madre|1999": "All About My Mother", "Principessa Mononoke|1997": "Princess Mononoke", "L'odio|1995": "La Haine", "Hong Kong Express|1994": "Chungking Express", "Tre colori – Film rosso|1994": "Three Colours: Red", "Kiki – Consegne a domicilio|1989": "Kiki's Delivery Service", "Il mio vicino Totoro|1988": "My Neighbor Totoro", "Il cielo sopra Berlino|1987": "Wings of Desire", "Fanny e Alexander|1982": "Fanny and Alexander", "Fino all'ultimo respiro|1960": "Breathless", "I quattrocento colpi|1959": "The 400 Blows", "Il settimo sigillo|1957": "The Seventh Seal", "I sette samurai|1954": "Seven Samurai", "Viaggio a Tokyo|1953": "Tokyo Story"};
+  function migrateTitles() {
+    if (migrations.includes(MIGRATION)) return false;
+    for (const x of [...entries, ...watch]) {
+      const t = RENAMED[x.title + '|' + (x.year || '')];
+      if (t) { x.title = t; x.updated = Date.now(); }
+    }
+    migrations.push(MIGRATION);
+    return true;
+  }
   let storageOK = true;
   let persisted = null;
   const ui = { filter: 'all', sort: 'recent', q: '', theme: 'system', online: true, tab: 'diary', wsort: 'added' };
@@ -1456,6 +1469,7 @@ Metropolis|1927
       const d = JSON.parse(raw);
       const arr = Array.isArray(d) ? d : d && d.entries;
       const warr = d && Array.isArray(d.watchlist) ? d.watchlist : [];
+      migrations = d && Array.isArray(d.migrations) ? d.migrations.filter(x => typeof x === 'string') : [];
       return {
         entries: Array.isArray(arr) ? arr.map(sanitize).filter(Boolean) : [],
         watch: warr.map(sanitizeW).filter(Boolean),
@@ -1472,7 +1486,7 @@ Metropolis|1927
     clearTimeout(saveTimer);
     saveTimer = 0;
     try {
-      localStorage.setItem(KEY, JSON.stringify({ app: 'Visto', version: 2, entries, watchlist: watch }));
+      localStorage.setItem(KEY, JSON.stringify({ app: 'Visto', version: 2, entries, watchlist: watch, migrations }));
       storageOK = true;
     } catch (err) {
       storageOK = false;
@@ -2036,7 +2050,7 @@ Metropolis|1927
         .filter(x => FILMISH.test(x.description || ''))
         .map(x => ({ t: x.label || (x.match && x.match.text) || '', y: validYear(yearIn(x.description)) }))
         .filter(f => f.t);
-      // 2) keep only real films, earliest release year, English title for English-language films
+      // 2) keep only real films, earliest release year, Italian title for Italian-language films, English for the rest
       if (cands.length) {
         try {
           const values = cands.map(x => 'wd:' + x.id).join(' ');
@@ -2054,8 +2068,8 @@ Metropolis|1927
             const b = rows.get(c.id);
             const it = b.it && b.it.value;
             const en = b.en && b.en.value;
-            const english = /entity\/Q1860(\s|$)/.test((b.ls && b.ls.value) || '');
-            const t = (english ? en || it : it || en) || c.label || '';
+            const italian = /entity\/Q652(\s|$)/.test((b.ls && b.ls.value) || '');
+            const t = (italian ? it || en : en || it) || c.label || '';
             const y = validYear(b.y && b.y.value) || validYear(yearIn(c.description));
             return { t, y };
           }).filter(f => f.t);
@@ -2780,8 +2794,11 @@ Metropolis|1927
   loadUI();
   applyTheme();
   const stored = load();
-  if (stored) { entries = stored.entries; watch = stored.watch; }
-  else if (BUILD === 'preview' && storageOK) { entries = examples(); watch = watchExamples(); saveNow(); }
+  if (stored) { entries = stored.entries; watch = stored.watch; if (migrateTitles()) saveNow(); }
+  else {
+    migrations = [MIGRATION];
+    if (BUILD === 'preview' && storageOK) { entries = examples(); watch = watchExamples(); saveNow(); }
+  }
   banner();
   render();
 

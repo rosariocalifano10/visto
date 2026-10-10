@@ -26,7 +26,7 @@ One entry per viewing; a rewatch is a new entry. Fields: title, year (optional),
 - Adding a film: + → type → pick suggestion → stars → done.
 
 ## Catalog conventions
-English titles for English-language films, Italian titles for everything else.
+Italian titles for Italian films, English titles for everything else (catalog and Wikidata results).
 
 ## Look
 Cinema-inspired. A dark marquee band with a row of bulbs at the top; each diary entry is a ticket stub whose colour says where you watched it (popcorn-bucket red for cinema, screen blue for home, grey when not set). Condensed marquee type for titles, a ticket-printer mono for dates and labels, system sans for everything else. Light and dark modes, bottom sheets, safe-area aware, 44pt tap targets.
