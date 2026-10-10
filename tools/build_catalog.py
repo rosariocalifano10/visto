@@ -1,0 +1,156 @@
+#!/usr/bin/env python3
+"""Build catalog.json for Visto from Wikidata (public domain, CC0).
+
+Runs on GitHub Actions (.github/workflows/catalog.yml): on demand and on the 1st of each month,
+so new releases appear without touching the app. Standard library only.
+
+Data comes from QLever (University of Freiburg), a fast public SPARQL endpoint over Wikidata;
+the main Wikidata query service times out on a query this size.
+
+Output: catalog.json  {"v":1, "built":..., "count":N, "films":[[title, year, popularity, alt?], ...]}
+  - title: Italian title for Italian films, English title for everything else
+  - alt:   the other-language title when it differs, so searching either name finds the film
+  - popularity: number of Wikipedia language editions with an article on the film
+"""
+import datetime as dt
+import json
+import re
+import sys
+import time
+import unicodedata
+import urllib.parse
+import urllib.request
+
+ENDPOINT = "https://qlever.cs.uni-freiburg.de/api/wikidata"
+UA = "VistoCatalog/1.0 (https://github.com/rosariocalifano10/visto; personal film diary, monthly refresh)"
+MIN_SITELINKS = 5       # a film needs an article in at least this many Wikipedia languages
+MAX_FILMS = 80000       # keep the most widely covered films if there are more
+MIN_EXPECTED = 20000    # fewer than this means something broke: keep the previous catalog
+ITALIAN_LANG = "http://www.wikidata.org/entity/Q652"
+ITALY = "http://www.wikidata.org/entity/Q38"
+
+QUERY = """PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX schema: <http://schema.org/>
+SELECT ?film (MAX(?s0) AS ?s) (MIN(YEAR(?d)) AS ?y)
+       (SAMPLE(?it0) AS ?it) (SAMPLE(?en0) AS ?en) (SAMPLE(?itw0) AS ?itw) (SAMPLE(?enw0) AS ?enw)
+       (GROUP_CONCAT(DISTINCT STR(?lang); SEPARATOR=" ") AS ?langs)
+       (GROUP_CONCAT(DISTINCT STR(?country); SEPARATOR=" ") AS ?countries)
+WHERE {
+  ?film wdt:P31/wdt:P279* wd:Q11424 ;
+        wikibase:sitelinks ?s0 ;
+        wdt:P577 ?d .
+  FILTER(xsd:integer(?s0) >= %d)
+  OPTIONAL { ?film wdt:P364 ?lang }
+  OPTIONAL { ?film wdt:P495 ?country }
+  OPTIONAL { ?film rdfs:label ?it0 FILTER(LANG(?it0) = "it") }
+  OPTIONAL { ?film rdfs:label ?en0 FILTER(LANG(?en0) = "en") }
+  OPTIONAL { ?a1 schema:about ?film ; schema:isPartOf <https://it.wikipedia.org/> ; schema:name ?itw0 }
+  OPTIONAL { ?a2 schema:about ?film ; schema:isPartOf <https://en.wikipedia.org/> ; schema:name ?enw0 }
+}
+GROUP BY ?film
+""" % MIN_SITELINKS
+
+# "Parasite (2019 film)" -> "Parasite", "La grande bellezza (film)" -> "La grande bellezza"
+WIKI_SUFFIX = re.compile(r"\s*\((?:[^()]*\b(?:film|movie|documentary|documentario|animated|anime)\b[^()]*|\d{4})\)$", re.I)
+
+
+def norm(s):
+    s = unicodedata.normalize("NFD", s or "")
+    s = "".join(c for c in s if not unicodedata.combining(c)).lower()
+    return " ".join("".join(c if c.isalnum() else " " for c in s).split())
+
+
+def val(b, k):
+    v = b.get(k)
+    return v["value"] if v else None
+
+
+def wiki_title(t):
+    return WIKI_SUFFIX.sub("", t).strip() if t else None
+
+
+def run_query(sparql, timeout=600):
+    data = urllib.parse.urlencode({"query": sparql}).encode()
+    req = urllib.request.Request(ENDPOINT, data=data, method="POST", headers={
+        "User-Agent": UA,
+        "Accept": "application/sparql-results+json",
+        "Content-Type": "application/x-www-form-urlencoded",
+    })
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return json.loads(r.read().decode("utf-8"))["results"]["bindings"]
+
+
+def main(out_path, report_path):
+    t0 = time.time()
+    last_year = dt.date.today().year + 2
+    log = []
+    rows = None
+    for attempt in range(5):
+        try:
+            rows = run_query(QUERY)
+            break
+        except Exception as e:  # timeouts, 5xx, connection resets
+            wait = 30 * (attempt + 1)
+            log.append(f"attempt {attempt + 1}: {type(e).__name__}: {e}; retrying in {wait}s")
+            time.sleep(wait)
+    if rows is None:
+        raise SystemExit("QLever did not answer; keeping the previous catalog")
+    log.append(f"{len(rows)} films returned in {time.time() - t0:.0f}s")
+
+    out = []
+    fixed_en = fixed_it = 0
+    for b in rows:
+        y = val(b, "y")
+        if not y:
+            continue
+        year = int(float(y))
+        if not (1880 <= year <= last_year):
+            continue
+        langs = (val(b, "langs") or "").split()
+        countries = (val(b, "countries") or "").split()
+        italian = ITALIAN_LANG in langs or (not langs and ITALY in countries)
+        it, en = val(b, "it"), val(b, "en")
+        if not en and val(b, "enw"):
+            en = wiki_title(val(b, "enw")); fixed_en += 1
+        if not it and val(b, "itw"):
+            it = wiki_title(val(b, "itw")); fixed_it += 1
+        title = (it or en) if italian else (en or it)
+        if not title:
+            continue
+        other = en if italian else it
+        rec = [title, year, int(float(val(b, "s")))]
+        if other and norm(other) != norm(title):
+            rec.append(other)
+        out.append(rec)
+    out.sort(key=lambda r: (-r[2], r[0]))
+    out = out[:MAX_FILMS]
+
+    by_decade = {}
+    for r in out:
+        d = r[1] // 10 * 10
+        by_decade[d] = by_decade.get(d, 0) + 1
+    report = [
+        f"built {dt.datetime.utcnow().isoformat(timespec='seconds')}Z in {time.time() - t0:.0f}s from {ENDPOINT}",
+        f"films kept: {len(out)} (min {MIN_SITELINKS} Wikipedia languages); English title from Wikipedia for {fixed_en}, Italian for {fixed_it}",
+        "per decade: " + ", ".join(f"{d}s {n}" for d, n in sorted(by_decade.items())),
+        "top: " + "; ".join(f"{r[0]} ({r[1]})" for r in out[:20]),
+        "--- log ---",
+        *log,
+    ]
+    with open(report_path, "w", encoding="utf-8") as fh:
+        fh.write("\n".join(report) + "\n")
+    print("\n".join(report))
+    if len(out) < MIN_EXPECTED:
+        raise SystemExit(f"only {len(out)} films: keeping the previous catalog")
+    payload = {"v": 1, "built": dt.date.today().isoformat(), "source": "Wikidata (CC0) via QLever", "count": len(out), "films": out}
+    with open(out_path, "w", encoding="utf-8") as fh:
+        json.dump(payload, fh, ensure_ascii=False, separators=(",", ":"))
+
+
+if __name__ == "__main__":
+    main(sys.argv[1] if len(sys.argv) > 1 else "catalog.json",
+         sys.argv[2] if len(sys.argv) > 2 else "catalog-report.txt")
