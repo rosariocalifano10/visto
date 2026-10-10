@@ -1,0 +1,6 @@
+built 2026-10-10T21:42:18Z in 10s from https://qlever.cs.uni-freiburg.de/api/wikidata
+films kept: 77090 (min 5 Wikipedia languages); English title from Wikipedia for 116, Italian for 87
+per decade: 1880s 7, 1890s 214, 1900s 603, 1910s 4585, 1920s 4402, 1930s 3787, 1940s 3557, 1950s 5246, 1960s 5402, 1970s 5584, 1980s 5976, 1990s 7217, 2000s 11428, 2010s 13415, 2020s 5667
+top: Madagascar (2005); Forrest Gump (1994); Titanic (1997); The Fox and the Hound (1981); Il padrino (1972); The Lion King (1994); Avatar (2009); Bad Cat (2016); Snow White and the Seven Dwarfs (1937); The Little Mermaid (1989); Toy Story (1995); The Matrix (1999); Bambi (1942); Shrek (2001); Frozen (2013); Spirited Away (2001); Dumbo (1941); Gladiator (2000); Casablanca (1942); Pulp Fiction (1994)
+--- log ---
+77202 films returned in 9s
