@@ -3,6 +3,8 @@
 A private film diary for iPhone. Popcorn = seen at the cinema, laptop = seen at home, 1–5 stars with halves, plus a watchlist of films you want to see.
 It works offline, needs no account, and your entries never leave the phone unless you export them.
 
+Its twin for books, **Letto**, lives in the [`letto/`](letto/) folder: https://rosariocalifano10.github.io/visto/letto/
+
 ## 1. Put it online once (free, GitHub Pages)
 
 The app's code has to live at an `https://` address so Safari can install it. Your diary does not go there: it stays in the app's storage on your phone. The code is public; your entries are not.
