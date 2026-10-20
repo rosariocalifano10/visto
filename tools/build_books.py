@@ -6,11 +6,12 @@ so new books appear without touching the app. Standard library only.
 
 Data comes from QLever (University of Freiburg), a fast public SPARQL endpoint over Wikidata.
 
-Output: {"v":1, "built":..., "count":N, "books":[[title, year, popularity, author, alt?], ...]}
+Output: {"v":1, "built":..., "count":N, "books":[[title, year, popularity, author, alt?, author_it?], ...]}
   - title:  Italian title for books written in Italian, English title for everything else
   - alt:    the other-language title when it differs, so searching either name finds the book
   - year:   first publication (negative = BC), null when Wikidata has none
   - author: up to two authors, "" when none is recorded (anonymous classics)
+  - author_it: the authors' Italian names when they differ (Dostoevskij, Tolstoj), so either spelling finds them
   - popularity: number of Wikimedia sites (Wikipedias, Wikisource...) with a page on the book
 """
 import datetime as dt
@@ -223,12 +224,17 @@ def main(out_path, report_path):
         # some Italian labels are all lower case ("il diavolaro")
         title = title[0].upper() + title[1:] if title[0].islower() else title
         author = authors_of(val(b, "auens")) or authors_of(val(b, "auits"))
+        author_it = authors_of(val(b, "auits"))
         if not author:
             no_author += 1
         other = en if italian else it
         rec = [title, year, pop, author]
-        if other and norm(other) != norm(title):
-            rec.append(other)
+        alt = other if other and norm(other) != norm(title) else ""
+        extra = author_it if author_it and norm(author_it) != norm(author) else ""
+        if alt or extra:
+            rec.append(alt)
+        if extra:
+            rec.append(extra)
         out.append(rec)
 
     # The same book can come back twice (two items for one work): keep the better-known copy.
