@@ -217,7 +217,8 @@ def main(out_path, report_path):
         langs = (val(b, "langs") or "").split()
         countries = (val(b, "countries") or "").split()
         italian = is_italian(langs, countries)
-        it, en = val(b, "it"), val(b, "en")
+        # labels sometimes carry a Wikipedia-style suffix too: "James (romanzo)"
+        it, en = wiki_title(val(b, "it")), wiki_title(val(b, "en"))
         if not en and val(b, "enw"):
             en = wiki_title(val(b, "enw")); fixed_en += 1
         if not it and val(b, "itw"):
