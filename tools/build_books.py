@@ -77,12 +77,15 @@ WIKI_SUFFIX = re.compile(
 # Wikidata labels that are not a usable title
 BAD_TITLE = re.compile(r"^Q\d+$")
 # Things filed under literary work / book that nobody logs as a book they read: websites and wikis, software,
-# reference works, laws and treaties, parts of scripture, manuscripts, periodicals, speeches, anthems, prayers.
+# reference works, laws and treaties, parts of scripture, manuscripts, periodicals, speeches, songs and operas,
+# TV, games, and Wikidata housekeeping classes.
 BAD_TYPE = re.compile(
     r"\b(website|wiki|wikimedia|software|cryptocurrenc\w*|protocol|database|dictionary|encyclopa?edia|"
     r"book of the bible|biblical|gospel|surah|sura|epistle|chapter(?! book)|psalm|law|legislation|treaty|constitution|"
     r"declaration|charter|resolution|standard|specification|scholarly article|manuscript|codex|"
-    r"magazine|newspaper|journal|periodical|speech|anthem|hymn|prayer)\b",
+    r"magazine|newspaper|journal|periodical|speech|anthem|hymn|prayer|wikipedia|glossary|list article|overview article|"
+    r"song|single|music|musical|opera|operetta|ballet|track|television|tv series|limited series|miniseries|pilot|"
+    r"video game|meme|webcomic|recipe|papal bull|encyclical|parable|female topic|women in|item that needs)\b",
     re.I,
 )
 
@@ -217,6 +220,8 @@ def main(out_path, report_path):
         title = (it or en) if italian else (en or it)
         if not title or BAD_TITLE.match(title):
             continue
+        # some Italian labels are all lower case ("il diavolaro")
+        title = title[0].upper() + title[1:] if title[0].islower() else title
         author = authors_of(val(b, "auens")) or authors_of(val(b, "auits"))
         if not author:
             no_author += 1
