@@ -86,7 +86,7 @@ BAD_TYPE = re.compile(
     r"declaration|charter|resolution|standard|specification|scholarly article|manuscript|codex|"
     r"magazine|newspaper|journal|periodical|speech|anthem|hymn|prayer|wikipedia|glossary|list article|overview article|"
     r"song|single|music|musical|opera|operetta|ballet|track|television|tv series|limited series|miniseries|pilot|"
-    r"video game|meme|webcomic|recipe|papal bull|encyclical|parable|female topic|women in|item that needs)\b",
+    r"video game|meme|webcomic|recipe|papal bull|encyclical|parable|female topic|women in|item that needs|report)\b",
     re.I,
 )
 
@@ -202,6 +202,10 @@ def main(out_path, report_path):
         if pop >= 10:
             for t in types:
                 types_seen[t] = types_seen.get(t, 0) + 1
+        # Long manga and comic series have articles in many languages thanks to their anime; count them at half
+        # so single books are not crowded out of the browse lists (popularity is only used for ranking).
+        if any("series" in t.lower() for t in types):
+            pop = max(1, pop // 2)
         y = val(b, "y1") or val(b, "y2")
         year = int(float(y)) if y else None
         if year is not None and not (-3000 <= year <= last_year) or year == 0:
