@@ -1,0 +1,57 @@
+# Rebuilds letto/catalog.json (the book list Letto searches) from Wikidata.
+# Runs when the builder changes, on demand, and on the 1st of every month so new books show up.
+name: Refresh book catalog
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - tools/build_books.py
+      - .github/workflows/books.yml
+  workflow_dispatch:
+  schedule:
+    - cron: "47 4 1 * *"
+
+permissions:
+  contents: write
+  pages: write
+
+concurrency:
+  group: books
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build book catalog from Wikidata
+        run: python tools/build_books.py letto/catalog.json letto/catalog-report.txt
+
+      - name: Commit the new catalog
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          for f in letto/catalog-report.txt letto/catalog.json; do [ -f "$f" ] && git add "$f"; done
+          if git diff --staged --quiet; then
+            echo "No changes"
+            exit 0
+          fi
+          git commit -m "Refresh book catalog from Wikidata"
+          git pull --rebase origin main
+          git push origin HEAD:main
+
+      - name: Ask GitHub Pages to publish
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          curl -sS -X POST -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${{ github.repository }}/pages/builds" || true
