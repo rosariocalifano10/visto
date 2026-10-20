@@ -26,10 +26,10 @@ import urllib.request
 
 ENDPOINT = "https://qlever.cs.uni-freiburg.de/api/wikidata"
 UA = "LettoCatalog/1.0 (https://github.com/rosariocalifano10/visto; personal reading diary, monthly refresh)"
-MIN_SITELINKS = 3       # a book needs a page on at least this many Wikimedia sites
+MIN_SITELINKS = 2       # a book needs a page on at least this many Wikimedia sites, or an Italian Wikipedia article
 MIN_UNDATED = 12        # books with no date at all are kept only when this widely covered (Beowulf, the Mahabharata...)
 MAX_BOOKS = 80000       # keep the most widely covered books if there are more
-MIN_EXPECTED = 15000    # fewer than this means something broke: keep the previous catalog
+MIN_EXPECTED = 25000    # fewer than this means something broke: keep the previous catalog
 ITALIAN_LANG = "http://www.wikidata.org/entity/Q652"
 ENGLISH_LANG = "http://www.wikidata.org/entity/Q1860"
 ITALY = "http://www.wikidata.org/entity/Q38"
@@ -48,10 +48,11 @@ SELECT ?book (MAX(?s0) AS ?s) (MIN(YEAR(?pd)) AS ?y1) (MIN(YEAR(?id)) AS ?y2)
        (GROUP_CONCAT(DISTINCT STR(?country); SEPARATOR=" ") AS ?countries)
        (GROUP_CONCAT(DISTINCT ?auen; SEPARATOR="|") AS ?auens)
        (GROUP_CONCAT(DISTINCT ?auit; SEPARATOR="|") AS ?auits)
+       (GROUP_CONCAT(DISTINCT ?tyl; SEPARATOR="|") AS ?types)
 WHERE {
   { ?book wdt:P31/wdt:P279* wd:Q7725634 } UNION { ?book wdt:P31/wdt:P279* wd:Q571 } UNION { ?book wdt:P31 wd:Q47461344 }
   ?book wikibase:sitelinks ?s0 .
-  FILTER(xsd:integer(?s0) >= %d)
+  FILTER(xsd:integer(?s0) >= 1)
   OPTIONAL { ?book wdt:P577 ?pd }
   OPTIONAL { ?book wdt:P571 ?id }
   OPTIONAL { ?book wdt:P407 ?lang }
@@ -61,6 +62,8 @@ WHERE {
   OPTIONAL { ?book rdfs:label ?en0 FILTER(LANG(?en0) = "en") }
   OPTIONAL { ?a1 schema:about ?book ; schema:isPartOf <https://it.wikipedia.org/> ; schema:name ?itw0 }
   OPTIONAL { ?a2 schema:about ?book ; schema:isPartOf <https://en.wikipedia.org/> ; schema:name ?enw0 }
+  OPTIONAL { ?book wdt:P31 ?ty . ?ty rdfs:label ?tyl FILTER(LANG(?tyl) = "en") }
+  FILTER(xsd:integer(?s0) >= %d || BOUND(?itw0))
 }
 GROUP BY ?book
 """ % MIN_SITELINKS
@@ -73,6 +76,15 @@ WIKI_SUFFIX = re.compile(
 )
 # Wikidata labels that are not a usable title
 BAD_TITLE = re.compile(r"^Q\d+$")
+# Things filed under literary work / book that nobody logs as a book they read: websites and wikis, software,
+# reference works, laws and treaties, parts of scripture, manuscripts, periodicals, speeches, anthems, prayers.
+BAD_TYPE = re.compile(
+    r"\b(website|wiki|wikimedia|software|cryptocurrenc\w*|protocol|database|dictionary|encyclopa?edia|"
+    r"book of the bible|biblical|gospel|surah|sura|epistle|chapter(?! book)|psalm|law|legislation|treaty|constitution|"
+    r"declaration|charter|resolution|standard|specification|scholarly article|manuscript|codex|"
+    r"magazine|newspaper|journal|periodical|speech|anthem|hymn|prayer)\b",
+    re.I,
+)
 
 
 def norm(s):
@@ -174,8 +186,18 @@ def main(out_path, report_path):
 
     out = []
     fixed_en = fixed_it = undated = no_author = 0
+    dropped = {}
+    types_seen = {}
     for b in rows:
         pop = int(float(val(b, "s") or 0))
+        types = [t for t in (val(b, "types") or "").split("|") if t]
+        bad = next((t for t in types if BAD_TYPE.search(t)), None)
+        if bad:
+            dropped[bad] = dropped.get(bad, 0) + 1
+            continue
+        if pop >= 10:
+            for t in types:
+                types_seen[t] = types_seen.get(t, 0) + 1
         y = val(b, "y1") or val(b, "y2")
         year = int(float(y)) if y else None
         if year is not None and not (-3000 <= year <= last_year) or year == 0:
@@ -228,6 +250,9 @@ def main(out_path, report_path):
         "popularity cut-offs: " + ", ".join(f"top {n}: >= {pops[n - 1]}" for n in (1000, 10000, 30000, 50000, 80000) if len(pops) >= n),
         "per period: " + ", ".join(f"{p} {n}" for p, n in sorted(by_period.items(), key=lambda kv: kv[0])),
         "top: " + "; ".join(f"{r[0]} / {r[3]} ({r[1]})" for r in out[:40]),
+        "dropped types: " + ", ".join(f"{t} {n}" for t, n in sorted(dropped.items(), key=lambda kv: -kv[1])[:40]),
+        "common types (10+ sites): " + ", ".join(f"{t} {n}" for t, n in sorted(types_seen.items(), key=lambda kv: -kv[1])[:60]),
+        "low-popularity sample: " + "; ".join(f"{r[0]} / {r[3]} ({r[1]}, {r[2]})" for r in out[-25:]),
         "--- log ---",
         *log,
     ]
