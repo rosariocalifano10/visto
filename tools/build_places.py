@@ -35,11 +35,14 @@ ENDPOINTS = [
 UA = "MangiatoCatalog/1.0 (https://github.com/rosariocalifano10/visto; personal restaurant diary, monthly refresh)"
 MIN_EXPECTED = 30000    # fewer than this means something broke: keep the previous catalog
 
+# One region at a time: the whole of Italy in one request times out on the public servers.
+REGIONS = ["IT-21", "IT-23", "IT-25", "IT-32", "IT-34", "IT-36", "IT-42", "IT-45", "IT-52", "IT-55",
+           "IT-57", "IT-62", "IT-65", "IT-67", "IT-72", "IT-75", "IT-77", "IT-78", "IT-82", "IT-88"]
 PLACES_QUERY = """[out:csv(::type, ::id, ::lat, ::lon, name, "addr:city", "addr:place", cuisine, amenity,
   website, "contact:website", wikidata, opening_hours, phone, "contact:phone", "diet:vegetarian"; true; "\t")]
-[timeout:900][maxsize:2147483648];
-area["ISO3166-1"="IT"][admin_level=2]->.it;
-nwr["amenity"~"^(restaurant|fast_food)$"]["name"](area.it);
+[timeout:600][maxsize:1073741824];
+area["ISO3166-2"="%s"]["admin_level"="4"]->.r;
+nwr["amenity"~"^(restaurant|fast_food)$"]["name"](area.r);
 out center;
 """
 
@@ -165,7 +168,13 @@ def main(out_path, report_path):
     t0 = time.time()
     log = []
     towns = Towns(run(TOWNS_QUERY, "towns", log, timeout=660))
-    rows = run(PLACES_QUERY, "places", log)
+    rows = []
+    for code in REGIONS:
+        part = run(PLACES_QUERY % code, f"places {code}", log, timeout=660)
+        if len(part) < 100:
+            raise SystemExit(f"only {len(part)} places in {code}: keeping the previous catalog")
+        rows += part
+        time.sleep(5)  # be gentle with a shared public server
 
     out = []
     seen = set()
