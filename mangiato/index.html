@@ -1441,7 +1441,8 @@ label.item { cursor: pointer; }
       const area = here ? `${here.lat.toFixed(1)},${here.lon.toFixed(1)}` : '';
       const key = norm(q) + '@' + area;
       if (this.cache.has(key)) return this.cache.get(key);
-      const p = new URLSearchParams({ q: q.trim(), limit: '15' });
+      // lang=default: local names ("Napoli", "München"), the same as the offline list
+      const p = new URLSearchParams({ q: q.trim(), limit: '15', lang: 'default' });
       p.append('osm_tag', 'amenity:restaurant');
       p.append('osm_tag', 'amenity:fast_food');
       if (here) { p.set('lat', here.lat.toFixed(1)); p.set('lon', here.lon.toFixed(1)); }

@@ -30,4 +30,4 @@ Settings → **Export backup** saves your diary and To try list as a file (Save 
 
 ## Updating the app
 
-Replace `mangiato/index.html` in the repo and bump the version at the top of `mangiato/sw.js` (`mangiato-v1` → `mangiato-v2`). The installed app picks it up after you open it, close it and open it again. Your entries are untouched.
+Replace `mangiato/index.html` in the repo and bump the version at the top of `mangiato/sw.js` (`mangiato-v2` → `mangiato-v3`). The installed app picks it up after you open it, close it and open it again. Your entries are untouched.

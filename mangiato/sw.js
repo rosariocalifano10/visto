@@ -1,7 +1,7 @@
 // Mangiato service worker: everything is cached so the app opens with no connection.
 // Bump CACHE when you publish a new version; the update applies on the next launch.
 // Mangiato shares its web address with Visto and Letto, so it only ever touches caches whose names start with "mangiato-".
-const CACHE = 'mangiato-v1';
+const CACHE = 'mangiato-v2';
 // The big restaurant list lives in its own cache so app updates don't download it again.
 const DATA = 'mangiato-data';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon-180.png', './icon-192.png', './icon-512.png'];
