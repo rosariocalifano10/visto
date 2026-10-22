@@ -31,8 +31,22 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Build restaurant catalog from OpenStreetMap
-        run: python tools/build_places.py mangiato/catalog.json mangiato/catalog-report.txt
+      - name: Get Italy from OpenStreetMap (Geofabrik extract)
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq osmium-tool
+          curl -sSfL --retry 3 -o italy.osm.pbf https://download.geofabrik.de/europe/italy-latest.osm.pbf
+          ls -la italy.osm.pbf
+
+      - name: Keep restaurants, fast food and towns
+        run: |
+          osmium tags-filter italy.osm.pbf nwr/amenity=restaurant,fast_food -o places.osm.pbf --overwrite
+          osmium tags-filter italy.osm.pbf n/place=city,town,village -o towns.osm.pbf --overwrite
+          osmium export places.osm.pbf -f geojsonseq -o places.geojsonseq --overwrite
+          osmium export towns.osm.pbf -f geojsonseq -o towns.geojsonseq --overwrite
+          wc -l places.geojsonseq towns.geojsonseq
+
+      - name: Build restaurant catalog
+        run: python tools/build_places.py places.geojsonseq towns.geojsonseq mangiato/catalog.json mangiato/catalog-report.txt
 
       - name: Commit the new catalog
         if: always()
