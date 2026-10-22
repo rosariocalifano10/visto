@@ -1,7 +1,7 @@
 // Visto service worker: everything is cached so the app opens with no connection.
 // Bump CACHE when you publish a new version; the update applies on the next launch.
-// Letto (the reading diary) lives under letto/ on the same address: leave its pages and caches alone.
-const CACHE = 'visto-v7';
+// Letto (books) and Mangiato (restaurants) live under letto/ and mangiato/ on the same address: leave their pages and caches alone.
+const CACHE = 'visto-v8';
 // The big film list lives in its own cache so app updates don't download it again.
 const DATA = 'visto-data';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon-180.png', './icon-192.png', './icon-512.png'];
@@ -26,7 +26,7 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   const req = event.request;
   const url = new URL(req.url);
-  if (req.method !== 'GET' || url.origin !== self.location.origin || url.pathname.includes('/letto/')) return;
+  if (req.method !== 'GET' || url.origin !== self.location.origin || url.pathname.includes('/letto/') || url.pathname.includes('/mangiato/')) return;
   event.respondWith((async () => {
     const cache = await caches.open(url.pathname.endsWith('/catalog.json') ? DATA : CACHE);
     const cached = await cache.match(req, { ignoreSearch: true });

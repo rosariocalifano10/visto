@@ -4,6 +4,7 @@ A private film diary for iPhone. Popcorn = seen at the cinema, laptop = seen at 
 It works offline, needs no account, and your entries never leave the phone unless you export them.
 
 Its twin for books, **Letto**, lives in the [`letto/`](letto/) folder: https://rosariocalifano10.github.io/visto/letto/
+and the one for restaurants, **Mangiato**, in [`mangiato/`](mangiato/): https://rosariocalifano10.github.io/visto/mangiato/
 
 ## 1. Put it online once (free, GitHub Pages)
 
