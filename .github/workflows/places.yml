@@ -1,0 +1,57 @@
+# Rebuilds mangiato/catalog.json (the restaurant list Mangiato searches) from OpenStreetMap.
+# Runs when the builder changes, on demand, and on the 1st of every month so new places show up.
+name: Refresh restaurant catalog
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - tools/build_places.py
+      - .github/workflows/places.yml
+  workflow_dispatch:
+  schedule:
+    - cron: "7 5 1 * *"
+
+permissions:
+  contents: write
+  pages: write
+
+concurrency:
+  group: places
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build restaurant catalog from OpenStreetMap
+        run: python tools/build_places.py mangiato/catalog.json mangiato/catalog-report.txt
+
+      - name: Commit the new catalog
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          for f in mangiato/catalog-report.txt mangiato/catalog.json; do [ -f "$f" ] && git add "$f"; done
+          if git diff --staged --quiet; then
+            echo "No changes"
+            exit 0
+          fi
+          git commit -m "Refresh restaurant catalog from OpenStreetMap"
+          git pull --rebase origin main
+          git push origin HEAD:main
+
+      - name: Ask GitHub Pages to publish
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          curl -sS -X POST -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${{ github.repository }}/pages/builds" || true
